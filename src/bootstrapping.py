@@ -18,11 +18,9 @@ class Bootstrapper():
         self.fit_vis_or_vis2 = fit_vis_or_vis2
         self.full_data_set = full_data_set
 
+        # Set up random number generator.
         self.rng_seed = rng_seed
         self.rng = np.random.default_rng(self.rng_seed)
-
-        # Set up random number generator.
-        self.rng = np.random.default_rng(rng_seed)
 
         # Select the analytic function for fitting.
         match self.model_selector:
