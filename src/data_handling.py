@@ -230,8 +230,9 @@ class Full_data_set():
         """
         Return the data of all baselines as a tuple of flattened arrays.
 
-        Returns: Returns object attribute arrays in a tuple of the form
-          (data, data_error, wavelength, spatial_frequency, weight).
+        Returns:
+            Returns object attribute arrays in a tuple of the form
+            (data, data_error, wavelength, spatial_frequency, weight).
         """
 
         data_ls = []
@@ -263,8 +264,8 @@ class Full_data_set():
         Returns all baselines of the data set as a list.
 
         Returns:
-          baseline_ls: List of all baselines of all loaded Oifits files that
-            have not be excluded from the process.
+            baseline_ls: List of all baselines of all loaded Oifits files that
+              have not be excluded from the process.
         """
 
         all_baseline_ls = []
@@ -289,7 +290,7 @@ class Full_data_set():
         wavelengths.
 
         Returns:
-          data_per_wavelength_ls: List of Data_per_wavelength objects.
+            data_per_wavelength_ls: List of Data_per_wavelength objects.
         """
 
         # Check whether all Baseline objects contain the exact same wavelength
@@ -358,18 +359,18 @@ class Data_per_wavelength():
     usage is to fit the data for specific wavelengths separately.
 
     Attributes:
-      wavelength: The value of the wavelength in unit of meters [m].
-      data: The data associated with the wavelengths from all baselines.
-      data_error: Same as data, but for the data uncertainties.
-      weight: Weight of the data points for least-squares fitting.
-      ucoord: The u-coordinate in units of meter [m].
-      vcoord: The v-coordinate in units of meter [m].
-      B: The projected baseline length in units of meter [m].
-      spatial_frequency: The measured spatial frequencies. They are computed
-        via spatial_frequency = baseline/wavelength and have the unit [1/rad].
-        To get the common representation (e.g., used by the JMMC tool
-        Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one has to multiply with
-        1e-6.
+        wavelength: The value of the wavelength in unit of meters [m].
+        data: The data associated with the wavelengths from all baselines.
+        data_error: Same as data, but for the data uncertainties.
+        weight: Weight of the data points for least-squares fitting.
+        ucoord: The u-coordinate in units of meter [m].
+        vcoord: The v-coordinate in units of meter [m].
+        B: The projected baseline length in units of meter [m].
+        spatial_frequency: The measured spatial frequencies. They are computed
+          via spatial_frequency = baseline/wavelength and have the unit
+          [1/rad]. To get the common representation (e.g., used by the JMMC
+          tool Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one has to
+          multiply with 1e-6.
     """
 
     def __init__(

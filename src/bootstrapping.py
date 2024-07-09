@@ -106,12 +106,12 @@ class Bootstrapper():
         Resample the input with replacement.
 
         Args:
-        data: An iterable that will be resampled.
-        sample_size: The length of the created sample. The default is the size of
-            the input data.
+            data: An iterable that will be resampled.
+            sample_size: The length of the created sample. The default is the
+              size of the input data.
 
         Returns:
-        sample: The resampled input.
+            sample: The resampled input.
         """
 
         if not sample_size:
@@ -130,13 +130,13 @@ class Bootstrapper():
         Resample the input with replacement.
 
         Args:
-        data_tuple: A tuple of iterables all with the same length. All iterables
-            will be resampled individually, but in the same way.
-        sample_size: The length of the created sample for each iterable. The
-            default is the size of the input data.
+            data_tuple: A tuple of iterables all with the same length. All iterables
+              will be resampled individually, but in the same way.
+            sample_size: The length of the created sample for each iterable. The
+              default is the size of the input data.
 
         Returns:
-        sample_tuple: The resampled input.
+            sample_tuple: The resampled input.
         """
 
         tuple_len = len(data_tuple)
