@@ -28,29 +28,40 @@ class Bootstrapper():
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_function = \
                         model_functions.comp_VISAMP_limb_dark_disk_plus_overresolved
+                    self.fit_function_descriptor = \
+                        "VISAMP_limb_dark_disk_plus_overresolved"
                 elif fit_vis_or_vis2 == "VIS2":
                     self.fit_function = \
                         model_functions.comp_VIS2_limb_dark_disk_plus_overresolved
+                    self.fit_function_descriptor = \
+                        "VIS2_limb_dark_disk_plus_overresolved"
             case 2:
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_function = \
                         model_functions.comp_VISAMP_limb_dark_disk_plus_uniform_CSE
+                    self.fit_function_descriptor = \
+                        "VISAMP_limb_dark_disk_plus_uniform_CSE"
                 elif fit_vis_or_vis2 == "VIS2":
                     self.fit_function = \
                         model_functions.comp_VIS2_limb_dark_disk_plus_uniform_CSE
+                    self.fit_function_descriptor = \
+                        "VIS2_limb_dark_disk_plus_uniform_CSE"
 
         # Select how the data is bootstrapped.
         match self.bootstrap_selector:
             case 1:
                 # Sample all vis. measurements, so sample the full data set
                 self.sample = self.sample_data_points
+                self.sample_descriptor = "sampled_data_points"
             case 2:
                 # Sample the baselines, so treat all data for one baseline fully
                 # correlated.
                 self.sample = self.sample_baselines
+                self.sample_descriptor = "sampled_baselines"
             case 3:
                 # Sample complete observations.
                 self.sample = self.sample_observations
+                self.sample_descriptor = "sampled_observations"
             case 4:
                 # Fit for selected wavelengths the data points, i.e., sample for
                 # given wavelengths the baselines.
