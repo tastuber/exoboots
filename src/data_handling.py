@@ -89,6 +89,9 @@ def mask_wavelengths(oifits_obj: oifits.oifits, wave_min: float,
 
     return oifits_obj
 
+# TO DO:
+# Write function mask_baselines()
+
 class Baseline():
     """Data set of one baseline that can contain different types of data.
 
@@ -222,7 +225,130 @@ class Full_data_set():
       file_data_set_ls: List of All_Baselines_per_File objects.
     """
 
-    def __init__(self, file_data_set_ls: list):
+    def __init__(
+        self, oifits_file_ls: list[str], wave_min_ls: list[float],
+        wave_max_ls: list[float], exclude_baselines_ls_ls: list[list[str]],
+        path_to_data: str, fit_vis_or_vis2: str, weight_mode: str
+    ):
+        """
+        Read input, select wavelength and baseline and create a Full_data_set.
+
+        Args:
+            path_to_data: System path to where the Oifits files are.
+            oifits_file_ls: List of the Oifits files to be loaded.
+            wave_min_ls: List of the smallest wavelengths considered per file
+              listed in oifits_file_ls. Thereby it is possible to select
+              different smallest wavelengths for different files.
+            wave_max_ls: Same as wave_min_ls, but for the largest wavelengths
+              considered.
+            exclude_baselines_ls_ls: Nested list that contains a lists of
+              baselines to be excluded from the analysis for every file in
+              oifits_file_ls. The alphabetical order of the stations in the
+               baseline name does not matter, they are alphabetically ordered
+               internally.
+               Example: oifits_file_ls contains three files. We want to exclude
+                the baselines 'A0J3' and 'A4K2' in the second file and 'J3G2'
+                in the third file. Then set
+                exclude_baseline_ls = [[], [A0J3, A4K2], [J3G2]]
+
+        Raises:
+            NoDataError: The chosen data, visibility or squared visibility, is
+              not present in an input fits file.
+        """
+
+        file_data_set_ls =[]
+
+        for (oifits_file, wave_min, wave_max, exclude_baselines_ls) in zip(
+            oifits_file_ls, wave_min_ls, wave_max_ls, exclude_baselines_ls_ls
+        ):
+
+            oifits_obj = oifits.open(path_to_data+oifits_file)
+
+            # Check whether the desired data, visibility or squared visibility,
+            # is present in the chosen file. Raise error if not.
+            if fit_vis_or_vis2 == "VISAMP":
+                if len(oifits_obj.vis) == 0:
+                    pass
+                    raise exceptions.NoDataError(oifits_file, fit_vis_or_vis2)
+            elif fit_vis_or_vis2 == "VIS2":
+                if len(oifits_obj.vis2) == 0:
+                    raise exceptions.NoDataError(oifits_file, fit_vis_or_vis2)
+
+            # Mask wavelengths
+            oifits_obj = mask_wavelengths(
+                oifits_obj, wave_min, wave_max, fit_vis_or_vis2
+            )
+
+            # TO DO:
+            # Mask baselines using exclude_baselines_ls
+
+            # Loop trough the different data sets of the baselines Oifits file.
+            # Create a Baseline object for each set and put everything into an
+            # All_Baselines_per_File object.
+            # Different observations joint together in one file are not split.
+
+            baseline_ls = []
+
+            # Select VISAMP or VIS2
+            if fit_vis_or_vis2 == "VISAMP":
+                oifits_data = oifits_obj.vis
+            elif fit_vis_or_vis2 == "VIS2":
+                oifits_data = oifits_obj.vis2
+
+            for oifits_baseline in oifits_data:
+
+                # Get the name of the baseline. Join the two telescope stations
+                # sorted alphabetically.
+                station_ls = [oifits_baseline.station[0].sta_name,
+                            oifits_baseline.station[1].sta_name]
+                station_ls.sort()
+                baseline_id = "".join(station_ls)
+
+                # Select again on a deeper level VISAMP or VIS2.
+                # Then take the non masked values from each baseline and put
+                # them as array in oifits_data, oifits_error, and
+                # oifits_wavelength. No masked arrays from this point on, only
+                # the chosen data.
+                if fit_vis_or_vis2 == "VISAMP":
+
+                    oifits_data_values = oifits_baseline.visamp[
+                        np.invert(oifits_baseline.flag)
+                    ].data
+                    oifits_data_err_values = oifits_baseline.visamperr[
+                        np.invert(oifits_baseline.flag)
+                    ].data
+
+                elif fit_vis_or_vis2 == "VIS2":
+
+                    oifits_data_values = oifits_baseline.vis2data[
+                        np.invert(oifits_baseline.flag)
+                    ].data
+                    oifits_data_err_values = oifits_baseline.vis2err[
+                        np.invert(oifits_baseline.flag)
+                    ].data
+
+                wavelength = oifits_baseline.wavelength.eff_wave[
+                    np.invert(oifits_baseline.flag)
+                ]
+
+                ucoord = oifits_baseline.ucoord
+                vcoord = oifits_baseline.vcoord
+
+                baseline = Baseline(
+                    baseline_id=baseline_id,
+                    data=oifits_data_values,
+                    data_error=oifits_data_err_values,
+                    wavelength=wavelength,
+                    ucoord=ucoord,
+                    vcoord=vcoord,
+                    weight_mode=weight_mode
+                )
+                baseline_ls.append(baseline)
+
+            file_data_set_ls.append(
+                All_Baselines_per_File(
+                    file=oifits_file, baseline_ls=baseline_ls)
+            )
 
         self.file_data_set_ls = file_data_set_ls
 
@@ -348,6 +474,18 @@ class Full_data_set():
             )
 
         return Data_per_wavelength_ls
+
+
+class Full_data_set_from_list(Full_data_set):
+    """
+    Full_data_set created by providing list of All_Baselines_per_File objects.
+    """
+
+    def __init__(self, file_data_set_ls: list):
+
+
+        self.file_data_set_ls = file_data_set_ls
+
 
 class Data_per_wavelength():
     """

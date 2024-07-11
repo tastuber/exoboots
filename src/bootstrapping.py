@@ -90,7 +90,7 @@ class Bootstrapper():
 
     def sample_observations(self):
 
-        full_data_set_tmp = data_handling.Full_data_set(
+        full_data_set_tmp = data_handling.Full_data_set_from_list(
             self.resample(self.full_data_set.file_data_set_ls)
         )
 
@@ -104,7 +104,7 @@ class Bootstrapper():
 
         # Utilize class All_Baselines_per_File to create a temporary
         # Full_data_set to flatten all data arrays.
-        full_data_set_tmp = data_handling.Full_data_set(
+        full_data_set_tmp = data_handling.Full_data_set_from_list(
             [data_handling.All_Baselines_per_File(file="all chosen files",
                                    baseline_ls=baseline_ls)]
         )
