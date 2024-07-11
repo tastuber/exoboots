@@ -126,8 +126,17 @@ class Bootstrapper():
     def do_bootstrapping(self):
         """Perform the bootstrapping with the chosen settings."""
 
+        # Store the full results from the bootstrapping, thus the fit results
+        # for every sample.
         self.sampling_results = np.zeros([self.N_varied_params,
                                                self.N_sample])
+
+        # Store the high level result of the bootstrapping. That is, the
+        # median, the 0.16 quantile, and the 0.84 quantile of the distribution
+        # of best fit parameter values.
+        self.param_results_median = np.zeros(self.N_varied_params)
+        self.param_results_16percentile = np.zeros(self.N_varied_params)
+        self.param_results_84percentile = np.zeros(self.N_varied_params)
 
         for i_sample in range(self.N_sample):
 
@@ -151,6 +160,14 @@ class Bootstrapper():
                     self.sampling_results[i_varied_param,
                                                i_sample] = best_value
                     i_varied_param += 1
+
+        self.param_results_median = np.median(self.sampling_results, axis=1)
+        self.param_results_16percentile = np.percentile(
+            self.sampling_results, 16, axis=1
+        )
+        self.param_results_84percentile = np.percentile(
+            self.sampling_results, 84, axis=1
+        )
 
     def sample_data_points(self):
 
