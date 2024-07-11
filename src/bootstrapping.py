@@ -1,9 +1,19 @@
+import itertools
+
+import lmfit
 import numpy as np
 
 import data_handling
 import model_functions
 
 class Bootstrapper():
+    """
+
+    Any object is meant to be initialized once and no changes to input
+    variables afterwards. If any attributes changed after initialization,
+    nothing is reinitialized. If one wants to choose different settings, the
+    object has to be reinitalized.
+    """
 
     def __init__(
         self, N_sample: int, model_selector: int, bootstrap_selector: int,
@@ -67,14 +77,80 @@ class Bootstrapper():
                 # given wavelengths the baselines.
                 pass
 
+
+    def setup_model(
+            self, vary_param_ls: list[bool], value_param_ls: list[float],
+            low_bound_param_ls: list[float], up_bound_param_ls: list[float]
+    ):
+        """
+        Prepare the model for lmfit.
+
+        Arguments are lists of the length equaling the number of fit function's
+        parameters. The first item in the lists, respectively, belongs to the
+        first paramter, the second item to the second parameter etc.
+
+        Args:
+            vary_param_ls: Defines whether the parameter shall be varied and
+              optimized or remains fixed.
+            value_param_ls: Gives the inital value of the parameters. For fixed
+              parameters, this is the fixed value.
+            low_bound_param_ls: Lower bound for the fitting process. Only has
+              effect on varied parameters.
+            up_bound_param_ls: Lower bound for the fitting process. Only has
+              effect on varied parameters.
+        """
+
+        self.vary_param_ls = vary_param_ls
+        self.N_varied_params = vary_param_ls.count(True)
+
+        self.model = lmfit.Model(self.fit_function)
+
+        # Add the parameters to the model.
+        # Note that lmfit creates parameters also for fixed parameters.
+        self.model_params = lmfit.Parameters()
+        for (param_name, vary_param, value_param, low_bound_param,
+             up_bound_param) in zip(
+                self.model.param_names, self.vary_param_ls, value_param_ls,
+                low_bound_param_ls, up_bound_param_ls
+            ):
+            self.model_params.add(
+                param_name, vary=vary_param, value=value_param,
+                min=low_bound_param, max=up_bound_param
+            )
+
+        # Create list of only the varied parameters.
+        self.varied_param_ls = list(
+            itertools.compress(self.model.param_names, self.vary_param_ls)
+        )
+
     def do_bootstrapping(self):
         """Perform the bootstrapping with the chosen settings."""
 
-        for i in range(self.N_sample):
+        self.sampling_results = np.zeros([self.N_varied_params,
+                                               self.N_sample])
 
-            data, data_error, wavelength, spatial_frequency, weight = \
-                self.sample()
+        for i_sample in range(self.N_sample):
 
+            (data, data_error, wavelength,
+             spatial_frequency, weight) = self.sample()
+
+            result = self.model.fit(
+                data=data, params=self.model_params, weights=weight,
+                spatial_frequency=spatial_frequency
+            )
+
+            # Lmfit gives results also for fixed parameters. Exclude them in
+            # the result array.
+            i_varied_param = 0
+            for i_fit_param, best_value in enumerate(
+                result.best_values.values()
+            ):
+
+                if self.vary_param_ls[i_fit_param]:
+
+                    self.sampling_results[i_varied_param,
+                                               i_sample] = best_value
+                    i_varied_param += 1
 
     def sample_data_points(self):
 
