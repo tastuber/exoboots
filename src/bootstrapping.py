@@ -137,6 +137,8 @@ class Bootstrapper():
         self.param_results_median = np.zeros(self.N_varied_params)
         self.param_results_16percentile = np.zeros(self.N_varied_params)
         self.param_results_84percentile = np.zeros(self.N_varied_params)
+        self.param_results_error_minus = np.zeros(self.N_varied_params)
+        self.param_results_error_plus = np.zeros(self.N_varied_params)
 
         for i_sample in range(self.N_sample):
 
@@ -168,6 +170,20 @@ class Bootstrapper():
         self.param_results_84percentile = np.percentile(
             self.sampling_results, 84, axis=1
         )
+        self.param_results_error_minus = (
+            self.param_results_median - self.param_results_16percentile
+        )
+        self.param_results_error_plus = (
+            self.param_results_84percentile - self.param_results_median
+        )
+
+        # Store final results in dictionary.
+        self.results = {}
+        for i_varied_param, varied_param in enumerate(self.varied_param_ls):
+
+            self.results[varied_param] = self.param_results_median[i_varied_param]
+            self.results[f"+Delta {varied_param}"] = self.param_results_error_plus[i_varied_param]
+            self.results[f"-Delta {varied_param}"] = self.param_results_error_minus[i_varied_param]
 
     def sample_data_points(self):
 
