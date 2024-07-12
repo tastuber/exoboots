@@ -161,7 +161,7 @@ class Baseline():
         The options are:
           "no weights": All weights are the same and equal to one.
           "error": The errors of the data define the weights as
-            1/error.
+            1/error^2.
           "points per baseline": The weight is set as the inverse of the number
             of data points per baseline. This is motivated by the fact that for
             optical interferometry usually the different spectral data points
@@ -180,6 +180,7 @@ class Baseline():
         """
 
         num_data_points = len(self.wavelength)
+        weight_error = 1.0 / self.data_error**2
 
         if mode == "no weights":
 
@@ -187,7 +188,7 @@ class Baseline():
 
         elif mode == "error":
 
-            self.weight = 1.0 / self.data_error
+            self.weight = weight_error
 
         elif mode == "points per baseline":
 
@@ -198,7 +199,7 @@ class Baseline():
         elif mode == "both":
 
             weight_per_baseline = 1.0 / num_data_points
-            self.weight = weight_per_baseline * (1.0/self.data_error)
+            self.weight = weight_per_baseline * weight_error
 
         else:
 
