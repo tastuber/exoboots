@@ -2,6 +2,8 @@ import oifits
 
 import numpy as np
 
+import exceptions
+
 def read_settings(settings_file: str) -> (list, list, list, list):
     """
     Read the settings.txt file and put the data in lists.
