@@ -414,7 +414,7 @@ class Full_data_set():
         wavelength grid or a single file.
         Collects for each individual wavlength all associated data and puts it
         into a Data_per_wavelength object. All Data_per_wavelength objects are
-        put into a list which is returned.
+        put into a list that is returned.
         The length of the output list is equal to the amount of individual
         wavelengths.
 

@@ -64,8 +64,8 @@ class Bootstrapper():
                 self.sample = self.sample_data_points
                 self.sample_descriptor = "sampled_data_points"
             case 2:
-                # Sample the baselines, so treat all data for one baseline fully
-                # correlated.
+                # Sample the baselines, so treat all data for one baseline
+                # fully correlated.
                 self.sample = self.sample_baselines
                 self.sample_descriptor = "sampled_baselines"
             case 3:
@@ -73,8 +73,8 @@ class Bootstrapper():
                 self.sample = self.sample_observations
                 self.sample_descriptor = "sampled_observations"
             case 4:
-                # Fit for selected wavelengths the data points, i.e., sample for
-                # given wavelengths the baselines.
+                # Fit for selected wavelengths the data points, i.e., sample
+                # for given wavelengths the baselines.
                 pass
 
 
@@ -181,9 +181,15 @@ class Bootstrapper():
         self.results = {}
         for i_varied_param, varied_param in enumerate(self.varied_param_ls):
 
-            self.results[varied_param] = self.param_results_median[i_varied_param]
-            self.results[f"+Delta {varied_param}"] = self.param_results_error_plus[i_varied_param]
-            self.results[f"-Delta {varied_param}"] = self.param_results_error_minus[i_varied_param]
+            self.results[varied_param] = (
+                self.param_results_median[i_varied_param]
+            )
+            self.results[f"+Delta {varied_param}"] = (
+                self.param_results_error_plus[i_varied_param]
+            )
+            self.results[f"-Delta {varied_param}"] = (
+                self.param_results_error_minus[i_varied_param]
+            )
 
     def sample_data_points(self):
 
@@ -250,10 +256,10 @@ class Bootstrapper():
         Resample the input with replacement.
 
         Args:
-            data_tuple: A tuple of iterables all with the same length. All iterables
-              will be resampled individually, but in the same way.
-            sample_size: The length of the created sample for each iterable. The
-              default is the size of the input data.
+            data_tuple: A tuple of iterables all with the same length. All
+              iterables will be resampled individually, but in the same way.
+            sample_size: The length of the created sample for each iterable.
+              The default is the size of the input data.
 
         Returns:
             sample_tuple: The resampled input.
@@ -264,9 +270,9 @@ class Bootstrapper():
         for i in range(1, tuple_len):
             if len(data_tuple[i]) != data_len:
                 raise ValueError(
-                    f"Tuple items do not have the same length. Found length of "
-                    f"{data_len} for tupel item 0 and {len(data_tuple[i])} for "
-                    f"tupel item {i}."
+                    f"Tuple items do not have the same length. Found length "
+                    f"of {data_len} for tupel item 0 and {len(data_tuple[i])} "
+                    f"for tupel item {i}."
                 )
 
         if not sample_size:
