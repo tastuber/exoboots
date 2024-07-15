@@ -6,6 +6,7 @@ def plot_histogram(
         param_descriptor: str,
         sample_descriptor: str,
         fit_function_descriptor: str,
+        wavelength_str: str = "",
         bins: int = 20,
         save_fig: bool = True,
         save_fig_path: str = "../figures/"
@@ -17,6 +18,9 @@ def plot_histogram(
         data: Numpy array of the various best-fit parameter values retrieved
           through bootstrapping.
         param_descriptor: Descriptor of the fitted parameter.
+        wavelength_str: String representation of the wavelength. Use is
+          intended for the case of fitting to each wavelength separately. The
+          default is an empty string.
         bins: Number of histogram bins. The default is bins = 20.
         save_fig: Decides whether the figure is saved. True saves the figure,
           False does not.
@@ -79,6 +83,7 @@ def plot_histogram(
 
     # Print fit results as the title.
     title = (
+        f"{wavelength_str}{": " if wavelength_str!="" else ""}"
         f"{long_param_str} = {"(" if param_unit_str!="" else ""}{median:.2}"
         + f" + {plus_uncertainty:.1} - {minus_uncertainty:.1}"
         + f"{")" if param_unit_str!="" else ""}{param_unit_str}"
@@ -93,7 +98,7 @@ def plot_histogram(
         fig_format = "pdf"
         fig_name = get_fig_name(
             param_descriptor, sample_descriptor, fit_function_descriptor,
-            fig_format=fig_format
+            wavelength_str=wavelength_str, fig_format=fig_format
         )
         fig.savefig(save_fig_path+fig_name, format=fig_format)
 
@@ -185,7 +190,7 @@ def get_xlabel(param_descriptor: str):
 
 def get_fig_name(
         param_descriptor: str, sample_descriptor: str,
-        fit_function_descriptor: str, fig_format: str
+        fit_function_descriptor: str, wavelength_str: str, fig_format: str
 ):
     """
     Returns the figure file name for given fit parameter and settings.
@@ -196,6 +201,8 @@ def get_fig_name(
           bootstrapping, such as data points, baselines, observations or
           data points per wavelength.
         fit_function_descriptor: Descriptor of the chosen fit function.
+        wavelength_str: String representation of the wavelength. Use is
+          intended for the case of fitting to each wavelength separately.
         fig_format: The file format.
 
     Returns:
@@ -204,7 +211,7 @@ def get_fig_name(
 
     fig_name = (
          "_".join([param_descriptor, sample_descriptor,
-                   fit_function_descriptor])
+                   fit_function_descriptor, wavelength_str])
          + "." + fig_format
     )
 

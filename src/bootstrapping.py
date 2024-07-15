@@ -5,6 +5,7 @@ import numpy as np
 
 import data_handling
 import model_functions
+import plotting
 
 class Bootstrapper():
     """
@@ -408,3 +409,56 @@ class Bootstrapper():
         sample_tuple = tuple(data_ar)
 
         return sample_tuple
+
+    def plot_bootstrap_histograms(
+        self,
+        bins: int = 20,
+        save_fig: bool = True,
+        save_fig_path: str = "../figures/"
+    ):
+
+        match self.bootstrap_selector:
+
+            # Plot one histogram per fitted parameter.
+            case 1 | 2 | 3:
+
+                for sampling_results, model_param_name in zip(
+                    self.sampling_results, self.varied_param_ls
+                ):
+
+                    plotting.plot_histogram(
+                        data=sampling_results,
+                        param_descriptor=model_param_name,
+                        sample_descriptor=self.sample_descriptor,
+                        fit_function_descriptor=self.fit_function_descriptor,
+                        wavelength_str="",
+                        bins=bins,
+                        save_fig=save_fig,
+                        save_fig_path=save_fig_path
+                    )
+
+            # Plot for each wavelength one histogram per fitted parameter.
+            case 4:
+
+                for i_wavelength in range(self.N_wavelength):
+
+                    wavelength = self.wavelength_ls[i_wavelength]
+                    wavelength_str = (
+                        f"{wavelength*1e6:.4f} micron"
+                    )
+
+                    for sampling_results, model_param_name in zip(
+                        self.sampling_results[i_wavelength],
+                        self.varied_param_ls
+                    ):
+                        # Missing: wavelength
+                        plotting.plot_histogram(
+                            data=sampling_results,
+                            param_descriptor=model_param_name,
+                            sample_descriptor=self.sample_descriptor,
+                            fit_function_descriptor=self.fit_function_descriptor,
+                            wavelength_str=wavelength_str,
+                            bins=bins,
+                            save_fig=save_fig,
+                            save_fig_path=save_fig_path
+                        )
