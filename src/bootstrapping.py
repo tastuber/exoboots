@@ -27,6 +27,12 @@ class Bootstrapper():
         self.bootstrap_selector = bootstrap_selector
         self.fit_vis_or_vis2 = fit_vis_or_vis2
         self.full_data_set = full_data_set
+        self.data_per_wavelength = self.full_data_set.get_data_per_wavelength()
+        self.N_wavelength = len(self.data_per_wavelength)
+        self.wavelength_ls = [
+            self.data_per_wavelength[i].wavelength
+            for i in range(self.N_wavelength)
+        ]
 
         # Set up random number generator.
         self.rng_seed = rng_seed
@@ -75,8 +81,9 @@ class Bootstrapper():
             case 4:
                 # Fit for selected wavelengths the data points, i.e., sample
                 # for given wavelengths the baselines.
-                pass
-
+                self.sample_descriptor = (
+                    "sampled_baselines_for_fixed_wavelength"
+                )
 
     def setup_model(
             self, vary_param_ls: list[bool], value_param_ls: list[float],
@@ -125,6 +132,16 @@ class Bootstrapper():
 
     def do_bootstrapping(self):
         """Perform the bootstrapping with the chosen settings."""
+
+        match self.bootstrap_selector:
+            case 1 | 2 | 3:
+                self.do_bootstrapping_all_wavelengths()
+
+            case 4:
+                self.do_bootstrapping_for_fixed_wavelengths()
+
+    def do_bootstrapping_all_wavelengths(self):
+        """Do one bootstrap fit for the full data set."""
 
         # Store the full results from the bootstrapping, thus the fit results
         # for every sample.
@@ -191,6 +208,87 @@ class Bootstrapper():
                 self.param_results_error_minus[i_varied_param]
             )
 
+    def do_bootstrapping_for_fixed_wavelengths(self):
+        """Do a bootstrap fit each wavelength."""
+
+        self.results = {}
+
+        # Store the full results from the bootstrapping, thus the fit results
+        # for every sample.
+        self.sampling_results = np.zeros(
+            [self.N_wavelength, self.N_varied_params, self.N_sample]
+        )
+
+        # Store the high level result of the bootstrapping. That is, the
+        # median, the 0.16 quantile, and the 0.84 quantile of the distribution
+        # of best fit parameter values.
+        param_results_median = np.zeros(
+            [self.N_wavelength, self.N_varied_params]
+        )
+        param_results_error_minus = np.zeros(
+            [self.N_wavelength, self.N_varied_params]
+        )
+        param_results_error_plus = np.zeros(
+            [self.N_wavelength, self.N_varied_params]
+        )
+
+        for i_wavelength in range(self.N_wavelength):
+
+            for i_sample in range(self.N_sample):
+
+                (data, spatial_frequency, weight) = (
+                    self.sample_baselines_for_fixed_wavelength(i_wavelength)
+                )
+
+                result = self.model.fit(
+                    data=data, params=self.model_params, weights=weight,
+                    spatial_frequency=spatial_frequency
+                )
+
+                # Lmfit gives results also for fixed parameters. Exclude them
+                # in the result array.
+                i_varied_param = 0
+                for i_fit_param, best_value in enumerate(
+                    result.best_values.values()
+                ):
+
+                    if self.vary_param_ls[i_fit_param]:
+
+                        self.sampling_results[
+                            i_wavelength, i_varied_param, i_sample
+                        ] = best_value
+                        i_varied_param += 1
+
+            param_results_median[i_wavelength] = np.median(
+                self.sampling_results[i_wavelength], axis=1
+            )
+            param_results_error_minus[i_wavelength] = (
+                param_results_median[i_wavelength]
+                - np.percentile(self.sampling_results[i_wavelength], 16, axis=1)
+            )
+            param_results_error_plus[i_wavelength] = (
+                np.percentile(self.sampling_results[i_wavelength], 84, axis=1)
+                - param_results_median[i_wavelength]
+            )
+
+            # Store final results in dictionary.
+            wavelength_str = (
+                f"{self.wavelength_ls[i_wavelength]*1e6:.4f} micron"
+            )
+            for i_varied_param, varied_param in enumerate(
+                self.varied_param_ls
+            ):
+
+                self.results[f"{wavelength_str}: {varied_param}"] = (
+                    param_results_median[i_wavelength, i_varied_param]
+                )
+                self.results[f"{wavelength_str}: +Delta {varied_param}"] = (
+                    param_results_error_plus[i_wavelength, i_varied_param]
+                )
+                self.results[f"{wavelength_str}: -Delta {varied_param}"] = (
+                    param_results_error_minus[i_wavelength, i_varied_param]
+                )
+
     def sample_data_points(self):
 
         (data,
@@ -226,6 +324,27 @@ class Bootstrapper():
         data_tuple = full_data_set_tmp.get_all_data_flattened()
 
         return data_tuple
+
+    def sample_baselines_for_fixed_wavelength(self, i_wavelength: int):
+        """
+        Sample for a selected wavelength the different baselines.
+
+        Args:
+            i_wavelength: The index of the wavelength to be sampled. This picks
+              a Data_per_wavelength object from self.data_per_wavelength.
+
+        Returns:
+        """
+
+        (data, spatial_frequency, weight) = (
+            self.resample_parallel(
+                (self.data_per_wavelength[i_wavelength].data,
+                 self.data_per_wavelength[i_wavelength].spatial_frequency,
+                 self.data_per_wavelength[i_wavelength].weight)
+            )
+        )
+
+        return data, spatial_frequency, weight
 
     def resample(self, data: "iterable", sample_size=None) -> "iterable":
         """
