@@ -210,7 +210,7 @@ def get_hist_fig_name(
     """
 
     fig_name = (
-        f"{"_".join([param_descriptor, sample_descriptor,
+        f"{"_".join([param_descriptor, "hist", sample_descriptor,
                      fit_function_descriptor])}"
         f"{f"_{wavelength_str}" if wavelength_str!="" else ""}.{fig_format}"
     )
