@@ -295,13 +295,13 @@ class Bootstrapper():
                 self.varied_param_ls
             ):
 
-                self.results[f"{wavelength_str}: {varied_param}"] = (
+                self.results[f"{wavelength_str}, {varied_param}"] = (
                     param_results_median[i_wave, i_varied_param]
                 )
-                self.results[f"{wavelength_str}: +Delta {varied_param}"] = (
+                self.results[f"{wavelength_str}, +Delta {varied_param}"] = (
                     param_results_error_plus[i_wave, i_varied_param]
                 )
-                self.results[f"{wavelength_str}: -Delta {varied_param}"] = (
+                self.results[f"{wavelength_str}, -Delta {varied_param}"] = (
                     param_results_error_minus[i_wave, i_varied_param]
                 )
 
