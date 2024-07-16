@@ -3,9 +3,9 @@ import numpy as np
 
 def plot_histogram(
         data: np.array,
-        param_descriptor: str,
-        sample_descriptor: str,
-        fit_function_descriptor: str,
+        param_descr: str,
+        sample_descr: str,
+        fit_function_descr: str,
         wavelength_str: str = "",
         bins: int = 20,
         save_fig: bool = True,
@@ -17,7 +17,7 @@ def plot_histogram(
     Args:
         data: Numpy array of the various best-fit parameter values retrieved
           through bootstrapping.
-        param_descriptor: Descriptor of the fitted parameter.
+        param_descr: Descriptor of the fitted parameter.
         wavelength_str: String representation of the wavelength. Use is
           intended for the case of fitting to each wavelength separately. The
           default is an empty string.
@@ -32,9 +32,9 @@ def plot_histogram(
     ax.hist(x=data, bins=bins)
 
     # Obtain various strings for title, axes labels, and legend.
-    short_param_str = get_short_param_str(param_descriptor)
-    long_param_str = get_long_param_str(param_descriptor)
-    param_unit_str = get_param_unit_str(param_descriptor)
+    short_param_str = get_short_param_str(param_descr)
+    long_param_str = get_long_param_str(param_descr)
+    param_unit_str = get_param_unit_str(param_descr)
 
     # Compute the bootstrap statistics: the median, the 0.16 quantile, and the
     # 0.84 quantile. The median is the best-fit parameter, the difference from
@@ -91,13 +91,13 @@ def plot_histogram(
     ax.set_title(title)
 
     # Set axes labels.
-    ax.set_xlabel(get_hist_xlabel(param_descriptor))
+    ax.set_xlabel(get_hist_xlabel(param_descr))
     ax.set_ylabel("counts")
 
     if save_fig:
         fig_format = "pdf"
         fig_name = get_hist_fig_name(
-            param_descriptor, sample_descriptor, fit_function_descriptor,
+            param_descr, sample_descr, fit_function_descr,
             wavelength_str=wavelength_str, fig_format=fig_format
         )
         fig.savefig(save_fig_path+fig_name, format=fig_format)
@@ -106,9 +106,9 @@ def plot_vis(
         spatial_frequency,
         data,
         fit_vis_or_vis2,
-        sample_descriptor,
-        fit_function_descriptor,
-        wavelength_descriptor,
+        sample_descr,
+        fit_function_descr,
+        wavelength_descr,
         data_error = None,
         spatial_frequency_func = None,
         func_data = None,
@@ -134,94 +134,94 @@ def plot_vis(
         fig_format = "pdf"
         fig_name = get_vis_fig_name(
             fit_vis_or_vis2=fit_vis_or_vis2,
-            sample_descriptor=sample_descriptor,
-            fit_function_descriptor=fit_function_descriptor,
-            wavelength_descriptor=wavelength_descriptor,
+            sample_descr=sample_descr,
+            fit_function_descr=fit_function_descr,
+            wavelength_descr=wavelength_descr,
             fig_format=fig_format
         )
         fig.savefig(save_fig_path+fig_name, format=fig_format)
 
 
-def get_short_param_str(param_descriptor: str) -> str:
+def get_short_param_str(param_descr: str) -> str:
     """
     Define a short str for visualization for a given fit parameter.
 
     Args:
-        param_descriptor: The string representation of the fit parameter.
+        param_descr: The string representation of the fit parameter.
 
     Returns:
         short_param_str: The string to be used for the parameter.
     """
 
-    if param_descriptor == "f":
+    if param_descr == "f":
         short_param_str = "f"
-    elif param_descriptor == "stellar_diameter":
+    elif param_descr == "stellar_diameter":
         short_param_str = "stellar diameter"
-    elif param_descriptor == "lin_limb_dark_param":
+    elif param_descr == "lin_limb_dark_param":
         short_param_str = "a"
-    elif param_descriptor == "FOV":
+    elif param_descr == "FOV":
         short_param_str = "FOV"
 
     return short_param_str
 
-def get_long_param_str(param_descriptor: str) -> str:
+def get_long_param_str(param_descr: str) -> str:
     """
     Define a long str for visualization for a given fit parameter.
 
     Args:
-        param_descriptor: The string representation of the fit parameter.
+        param_descr: The string representation of the fit parameter.
 
     Returns:
         long_param_str: The string to be used for the parameter.
     """
 
-    if param_descriptor == "f":
-        long_param_str = param_descriptor
-    elif param_descriptor == "stellar_diameter":
+    if param_descr == "f":
+        long_param_str = param_descr
+    elif param_descr == "stellar_diameter":
         long_param_str = "stellar diameter"
-    elif param_descriptor == "lin_limb_dark_param":
+    elif param_descr == "lin_limb_dark_param":
         long_param_str = "linear limb-darkened parameter a"
-    elif param_descriptor == "FOV":
+    elif param_descr == "FOV":
         long_param_str = "field-of-view (FOV)"
 
     return long_param_str
 
-def get_param_unit_str(param_descriptor: str) -> str:
+def get_param_unit_str(param_descr: str) -> str:
     """
     Define the unit str for a given fit parameter.
 
     Args:
-        param_descriptor: The string representation of the fit parameter.
+        param_descr: The string representation of the fit parameter.
 
     Returns:
         unit_str: The string to be used for the parameter unit.
     """
 
-    if param_descriptor == "f":
+    if param_descr == "f":
         unit_str = ""
-    elif param_descriptor == "stellar_diameter":
+    elif param_descr == "stellar_diameter":
         unit_str = "mas"
-    elif param_descriptor == "lin_limb_dark_param":
+    elif param_descr == "lin_limb_dark_param":
         unit_str = ""
-    elif param_descriptor == "FOV":
+    elif param_descr == "FOV":
         unit_str = "mas"
 
     return unit_str
 
-def get_hist_xlabel(param_descriptor: str):
+def get_hist_xlabel(param_descr: str):
     """
     Define the x-axis label of the histograms for a given fit parameter.
 
     Args:
-        param_descriptor: The string representation of the fit parameter.
+        param_descr: The string representation of the fit parameter.
 
     Returns:
         x_label: The string to be used as x-axis label.
     """
 
-    param_unit_str = get_param_unit_str(param_descriptor)
+    param_unit_str = get_param_unit_str(param_descr)
     x_label = (
-        f"{get_long_param_str(param_descriptor)}"
+        f"{get_long_param_str(param_descr)}"
         + f"{" /" if param_unit_str!="" else ""}"
         + f"{param_unit_str}"
     )
@@ -229,18 +229,18 @@ def get_hist_xlabel(param_descriptor: str):
     return x_label
 
 def get_hist_fig_name(
-        param_descriptor: str, sample_descriptor: str,
-        fit_function_descriptor: str, wavelength_str: str, fig_format: str
+        param_descr: str, sample_descr: str,
+        fit_function_descr: str, wavelength_str: str, fig_format: str
 ):
     """
     Returns the figure file name for given fit parameter and settings.
 
     Args:
-        param_descriptor: Descriptor of the fittet paramter.
-        sample_descriptor: Descriptor of the chosen sampling during
+        param_descr: Descriptor of the fittet paramter.
+        sample_descr: Descriptor of the chosen sampling during
           bootstrapping, such as data points, baselines, observations or
           data points per wavelength.
-        fit_function_descriptor: Descriptor of the chosen fit function.
+        fit_function_descr: Descriptor of the chosen fit function.
         wavelength_str: String representation of the wavelength. Use is
           intended for the case of fitting to each wavelength separately.
         fig_format: The file format.
@@ -250,26 +250,26 @@ def get_hist_fig_name(
     """
 
     fig_name = (
-        f"{"_".join([param_descriptor, "hist", sample_descriptor,
-                     fit_function_descriptor])}"
+        f"{"_".join([param_descr, "hist", sample_descr,
+                     fit_function_descr])}"
         f"{f"_{wavelength_str}" if wavelength_str!="" else ""}.{fig_format}"
     )
 
     return fig_name
 
 def get_vis_fig_name(
-        fit_vis_or_vis2: str, sample_descriptor: str,
-        fit_function_descriptor: str, wavelength_descriptor: str, fig_format: str
+        fit_vis_or_vis2: str, sample_descr: str,
+        fit_function_descr: str, wavelength_descr: str, fig_format: str
 ):
     """
     Returns the figure file name for given fit parameter and settings.
 
     Args:
-        sample_descriptor: Descriptor of the chosen sampling during
+        sample_descr: Descriptor of the chosen sampling during
           bootstrapping, such as data points, baselines, observations or
           data points per wavelength.
-        fit_function_descriptor: Descriptor of the chosen fit function.
-        wavelength_descriptor: Contains information about the wavelengths.
+        fit_function_descr: Descriptor of the chosen fit function.
+        wavelength_descr: Contains information about the wavelengths.
           Typically either all wavelengths are fitted together or separately.
         fig_format: The file format.
 
@@ -278,8 +278,8 @@ def get_vis_fig_name(
     """
 
     fig_name = (
-        f"{"_".join([fit_vis_or_vis2, sample_descriptor, fit_function_descriptor,
-                     wavelength_descriptor])}"
+        f"{"_".join([fit_vis_or_vis2, sample_descr, fit_function_descr,
+                     wavelength_descr])}"
         f".{fig_format}"
     )
 

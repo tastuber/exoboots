@@ -45,23 +45,23 @@ class Bootstrapper():
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_function = \
                         model_functions.comp_VISAMP_limb_dark_disk_plus_overresolved
-                    self.fit_function_descriptor = \
+                    self.fit_function_descr = \
                         "VISAMP_limb_dark_disk_plus_overresolved"
                 elif fit_vis_or_vis2 == "VIS2":
                     self.fit_function = \
                         model_functions.comp_VIS2_limb_dark_disk_plus_overresolved
-                    self.fit_function_descriptor = \
+                    self.fit_function_descr = \
                         "VIS2_limb_dark_disk_plus_overresolved"
             case 2:
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_function = \
                         model_functions.comp_VISAMP_limb_dark_disk_plus_uniform_CSE
-                    self.fit_function_descriptor = \
+                    self.fit_function_descr = \
                         "VISAMP_limb_dark_disk_plus_uniform_CSE"
                 elif fit_vis_or_vis2 == "VIS2":
                     self.fit_function = \
                         model_functions.comp_VIS2_limb_dark_disk_plus_uniform_CSE
-                    self.fit_function_descriptor = \
+                    self.fit_function_descr = \
                         "VIS2_limb_dark_disk_plus_uniform_CSE"
 
         # Select how the data is bootstrapped.
@@ -69,20 +69,20 @@ class Bootstrapper():
             case 1:
                 # Sample all vis. measurements, so sample the full data set
                 self.sample = self.sample_data_points
-                self.sample_descriptor = "sampled_data_points"
+                self.sample_descr = "sampled_data_points"
             case 2:
                 # Sample the baselines, so treat all data for one baseline
                 # fully correlated.
                 self.sample = self.sample_baselines
-                self.sample_descriptor = "sampled_baselines"
+                self.sample_descr = "sampled_baselines"
             case 3:
                 # Sample complete observations.
                 self.sample = self.sample_observations
-                self.sample_descriptor = "sampled_observations"
+                self.sample_descr = "sampled_observations"
             case 4:
                 # Fit for selected wavelengths the data points, i.e., sample
                 # for given wavelengths the baselines.
-                self.sample_descriptor = (
+                self.sample_descr = (
                     "sampled_baselines_for_fixed_wavelength"
                 )
 
@@ -443,9 +443,9 @@ class Bootstrapper():
 
                     plotting.plot_histogram(
                         data=sampling_results,
-                        param_descriptor=model_param_name,
-                        sample_descriptor=self.sample_descriptor,
-                        fit_function_descriptor=self.fit_function_descriptor,
+                        param_descr=model_param_name,
+                        sample_descr=self.sample_descr,
+                        fit_function_descr=self.fit_function_descr,
                         wavelength_str="",
                         bins=bins,
                         save_fig=save_fig,
@@ -469,9 +469,9 @@ class Bootstrapper():
                         # Missing: wavelength
                         plotting.plot_histogram(
                             data=sampling_results,
-                            param_descriptor=model_param_name,
-                            sample_descriptor=self.sample_descriptor,
-                            fit_function_descriptor=self.fit_function_descriptor,
+                            param_descr=model_param_name,
+                            sample_descr=self.sample_descr,
+                            fit_function_descr=self.fit_function_descr,
                             wavelength_str=wavelength_str,
                             bins=bins,
                             save_fig=save_fig,
@@ -531,7 +531,7 @@ class Bootstrapper():
             func_data=func_data,
             func_label=func_label,
             fit_vis_or_vis2=self.fit_vis_or_vis2,
-            sample_descriptor=self.sample_descriptor,
-            fit_function_descriptor=self.fit_function_descriptor,
-            wavelength_descriptor="all_waves"
+            sample_descr=self.sample_descr,
+            fit_function_descr=self.fit_function_descr,
+            wavelength_descr="all_waves"
         )
