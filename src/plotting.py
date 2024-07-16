@@ -102,6 +102,46 @@ def plot_histogram(
         )
         fig.savefig(save_fig_path+fig_name, format=fig_format)
 
+def plot_vis(
+        spatial_frequency,
+        data,
+        fit_vis_or_vis2,
+        sample_descriptor,
+        fit_function_descriptor,
+        wavelength_descriptor,
+        data_error = None,
+        spatial_frequency_func = None,
+        func_data = None,
+        func_label = None,
+        title = "",
+        figsize = (16, 8),
+        save_fig = True,
+        save_fig_path = "../figures/"
+):
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    ax.errorbar(spatial_frequency, data, yerr=data_error, fmt="x")
+
+    if np.any(func_data):
+        ax.plot(spatial_frequency_func, func_data, label=func_label)
+        ax.legend()
+
+    ax.set_xlabel("spatial frequency")
+    ax.set_ylabel(f"{"squared " if fit_vis_or_vis2=="VIS2" else ""}visibility")
+
+    if save_fig:
+        fig_format = "pdf"
+        fig_name = get_vis_fig_name(
+            fit_vis_or_vis2=fit_vis_or_vis2,
+            sample_descriptor=sample_descriptor,
+            fit_function_descriptor=fit_function_descriptor,
+            wavelength_descriptor=wavelength_descriptor,
+            fig_format=fig_format
+        )
+        fig.savefig(save_fig_path+fig_name, format=fig_format)
+
+
 def get_short_param_str(param_descriptor: str) -> str:
     """
     Define a short str for visualization for a given fit parameter.
@@ -213,6 +253,34 @@ def get_hist_fig_name(
         f"{"_".join([param_descriptor, "hist", sample_descriptor,
                      fit_function_descriptor])}"
         f"{f"_{wavelength_str}" if wavelength_str!="" else ""}.{fig_format}"
+    )
+
+    return fig_name
+
+def get_vis_fig_name(
+        fit_vis_or_vis2: str, sample_descriptor: str,
+        fit_function_descriptor: str, wavelength_descriptor: str, fig_format: str
+):
+    """
+    Returns the figure file name for given fit parameter and settings.
+
+    Args:
+        sample_descriptor: Descriptor of the chosen sampling during
+          bootstrapping, such as data points, baselines, observations or
+          data points per wavelength.
+        fit_function_descriptor: Descriptor of the chosen fit function.
+        wavelength_descriptor: Contains information about the wavelengths.
+          Typically either all wavelengths are fitted together or separately.
+        fig_format: The file format.
+
+    Returns:
+        fig_name: The figure file name.
+    """
+
+    fig_name = (
+        f"{"_".join([fit_vis_or_vis2, sample_descriptor, fit_function_descriptor,
+                     wavelength_descriptor])}"
+        f".{fig_format}"
     )
 
     return fig_name

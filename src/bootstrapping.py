@@ -110,6 +110,7 @@ class Bootstrapper():
 
         self.vary_param_ls = vary_param_ls
         self.N_varied_params = vary_param_ls.count(True)
+        self.value_param_ls = value_param_ls
 
         self.model = lmfit.Model(self.fit_function)
 
@@ -126,10 +127,24 @@ class Bootstrapper():
                 min=low_bound_param, max=up_bound_param
             )
 
-        # Create list of only the varied parameters.
+        # Create list of the varied parameters.
         self.varied_param_ls = list(
             itertools.compress(self.model.param_names, self.vary_param_ls)
         )
+
+        # Create dictionary of the fixed parameters. This is mainly for easier
+        # plotting.
+        self.fixed_param = {}
+        for i_fixed_param, (fixed_param, fixed_param_value) in enumerate(zip(
+            itertools.compress(self.model.param_names,
+                               np.invert(self.vary_param_ls)),
+            itertools.compress(self.value_param_ls,
+                               np.invert(self.vary_param_ls)))
+        ):
+
+            self.fixed_param[fixed_param] = (
+                fixed_param_value
+            )
 
     def do_bootstrapping(self):
         """Perform the bootstrapping with the chosen settings."""
@@ -178,7 +193,7 @@ class Bootstrapper():
                 if self.vary_param_ls[i_fit_param]:
 
                     self.sampling_results[i_varied_param,
-                                               i_sample] = best_value
+                                          i_sample] = best_value
                     i_varied_param += 1
 
         param_results_median = np.median(self.sampling_results, axis=1)
@@ -462,3 +477,61 @@ class Bootstrapper():
                             save_fig=save_fig,
                             save_fig_path=save_fig_path
                         )
+
+    def plot_data(
+        self,
+        plot_data_uncertainty: bool = True,
+    ):
+
+        (data, data_error,
+         _, spatial_frequency, _) = self.full_data_set.get_all_data_flattened()
+
+        if not plot_data_uncertainty:
+            data_error = None
+
+        # Compute the data of the model if it is already set up. If it is set
+        # up, but the bootstrapping has not been performed, plot the model with
+        # the initial values. If the bootstrapping has been performed, plot the
+        # model with the best fit parameters.
+
+        # Derive different data intervals for the measured data, the analytic
+        # function, and the axis. Each interval border is 5% smaller/larger
+        # than the former.
+        spatial_frequency_min = spatial_frequency.min()
+        spatial_frequency_max = spatial_frequency.max()
+        func_min = 0.95 * spatial_frequency_min
+        func_max = 1.05 * spatial_frequency_max
+        xlim = (0.95*func_min, 1.05*func_max)
+
+        spatial_frequency_func = np.geomspace(func_min, func_max, 100)
+
+        try:
+            fitted_param = {
+                key: self.results[key] for key in self.varied_param_ls
+            }
+            func_data = self.fit_function(
+                spatial_frequency_func, **self.fixed_param, **fitted_param
+            )
+            func_label = "result"
+        except AttributeError:
+            try:
+                func_data = self.fit_function(
+                    spatial_frequency_func, *self.value_param_ls
+                )
+                func_label = "initial guess"
+            except AttributeError:
+                func_data = None
+                func_label = None
+
+        plotting.plot_vis(
+            spatial_frequency=spatial_frequency,
+            data=data,
+            data_error=data_error,
+            spatial_frequency_func=spatial_frequency_func,
+            func_data=func_data,
+            func_label=func_label,
+            fit_vis_or_vis2=self.fit_vis_or_vis2,
+            sample_descriptor=self.sample_descriptor,
+            fit_function_descriptor=self.fit_function_descriptor,
+            wavelength_descriptor="all_waves"
+        )
