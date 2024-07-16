@@ -91,12 +91,12 @@ def plot_histogram(
     ax.set_title(title)
 
     # Set axes labels.
-    ax.set_xlabel(get_xlabel(param_descriptor))
+    ax.set_xlabel(get_hist_xlabel(param_descriptor))
     ax.set_ylabel("counts")
 
     if save_fig:
         fig_format = "pdf"
-        fig_name = get_fig_name(
+        fig_name = get_hist_fig_name(
             param_descriptor, sample_descriptor, fit_function_descriptor,
             wavelength_str=wavelength_str, fig_format=fig_format
         )
@@ -168,7 +168,7 @@ def get_param_unit_str(param_descriptor: str) -> str:
 
     return unit_str
 
-def get_xlabel(param_descriptor: str):
+def get_hist_xlabel(param_descriptor: str):
     """
     Define the x-axis label of the histograms for a given fit parameter.
 
@@ -188,7 +188,7 @@ def get_xlabel(param_descriptor: str):
 
     return x_label
 
-def get_fig_name(
+def get_hist_fig_name(
         param_descriptor: str, sample_descriptor: str,
         fit_function_descriptor: str, wavelength_str: str, fig_format: str
 ):
