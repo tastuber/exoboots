@@ -5,7 +5,7 @@ def plot_histogram(
         data: np.array,
         param_descr: str,
         sample_descr: str,
-        fit_function_descr: str,
+        fit_func_descr: str,
         wavelength_str: str = "",
         bins: int = 20,
         save_fig: bool = True,
@@ -97,7 +97,7 @@ def plot_histogram(
     if save_fig:
         fig_format = "pdf"
         fig_name = get_hist_fig_name(
-            param_descr, sample_descr, fit_function_descr,
+            param_descr, sample_descr, fit_func_descr,
             wavelength_str=wavelength_str, fig_format=fig_format
         )
         fig.savefig(save_fig_path+fig_name, format=fig_format)
@@ -107,7 +107,7 @@ def plot_vis(
         data,
         fit_vis_or_vis2,
         sample_descr,
-        fit_function_descr,
+        fit_func_descr,
         wavelength_descr,
         data_error = None,
         spatial_frequency_func = None,
@@ -135,7 +135,7 @@ def plot_vis(
         fig_name = get_vis_fig_name(
             fit_vis_or_vis2=fit_vis_or_vis2,
             sample_descr=sample_descr,
-            fit_function_descr=fit_function_descr,
+            fit_func_descr=fit_func_descr,
             wavelength_descr=wavelength_descr,
             fig_format=fig_format
         )
@@ -229,8 +229,8 @@ def get_hist_xlabel(param_descr: str):
     return x_label
 
 def get_hist_fig_name(
-        param_descr: str, sample_descr: str,
-        fit_function_descr: str, wavelength_str: str, fig_format: str
+        param_descr: str, sample_descr: str, fit_func_descr: str,
+        wavelength_str: str, fig_format: str
 ):
     """
     Returns the figure file name for given fit parameter and settings.
@@ -240,7 +240,7 @@ def get_hist_fig_name(
         sample_descr: Descriptor of the chosen sampling during
           bootstrapping, such as data points, baselines, observations or
           data points per wavelength.
-        fit_function_descr: Descriptor of the chosen fit function.
+        fit_func_descr: Descriptor of the chosen fit function.
         wavelength_str: String representation of the wavelength. Use is
           intended for the case of fitting to each wavelength separately.
         fig_format: The file format.
@@ -250,8 +250,7 @@ def get_hist_fig_name(
     """
 
     fig_name = (
-        f"{"_".join([param_descr, "hist", sample_descr,
-                     fit_function_descr])}"
+        f"{"_".join([param_descr, "hist", sample_descr, fit_func_descr])}"
         f"{f"_{wavelength_str}" if wavelength_str!="" else ""}.{fig_format}"
     )
 
@@ -259,7 +258,7 @@ def get_hist_fig_name(
 
 def get_vis_fig_name(
         fit_vis_or_vis2: str, sample_descr: str,
-        fit_function_descr: str, wavelength_descr: str, fig_format: str
+        fit_func_descr: str, wavelength_descr: str, fig_format: str
 ):
     """
     Returns the figure file name for given fit parameter and settings.
@@ -268,7 +267,7 @@ def get_vis_fig_name(
         sample_descr: Descriptor of the chosen sampling during
           bootstrapping, such as data points, baselines, observations or
           data points per wavelength.
-        fit_function_descr: Descriptor of the chosen fit function.
+        fit_func_descr: Descriptor of the chosen fit function.
         wavelength_descr: Contains information about the wavelengths.
           Typically either all wavelengths are fitted together or separately.
         fig_format: The file format.
@@ -278,7 +277,7 @@ def get_vis_fig_name(
     """
 
     fig_name = (
-        f"{"_".join([fit_vis_or_vis2, sample_descr, fit_function_descr,
+        f"{"_".join([fit_vis_or_vis2, sample_descr, fit_func_descr,
                      wavelength_descr])}"
         f".{fig_format}"
     )

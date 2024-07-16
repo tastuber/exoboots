@@ -43,25 +43,25 @@ class Bootstrapper():
         match self.model_selector:
             case 1:
                 if fit_vis_or_vis2 == "VISAMP":
-                    self.fit_function = \
+                    self.fit_func = \
                         model_functions.comp_VISAMP_limb_dark_disk_plus_overresolved
-                    self.fit_function_descr = \
+                    self.fit_func_descr = \
                         "VISAMP_limb_dark_disk_plus_overresolved"
                 elif fit_vis_or_vis2 == "VIS2":
-                    self.fit_function = \
+                    self.fit_func = \
                         model_functions.comp_VIS2_limb_dark_disk_plus_overresolved
-                    self.fit_function_descr = \
+                    self.fit_func_descr = \
                         "VIS2_limb_dark_disk_plus_overresolved"
             case 2:
                 if fit_vis_or_vis2 == "VISAMP":
-                    self.fit_function = \
+                    self.fit_func = \
                         model_functions.comp_VISAMP_limb_dark_disk_plus_uniform_CSE
-                    self.fit_function_descr = \
+                    self.fit_func_descr = \
                         "VISAMP_limb_dark_disk_plus_uniform_CSE"
                 elif fit_vis_or_vis2 == "VIS2":
-                    self.fit_function = \
+                    self.fit_func = \
                         model_functions.comp_VIS2_limb_dark_disk_plus_uniform_CSE
-                    self.fit_function_descr = \
+                    self.fit_func_descr = \
                         "VIS2_limb_dark_disk_plus_uniform_CSE"
 
         # Select how the data is bootstrapped.
@@ -112,7 +112,7 @@ class Bootstrapper():
         self.N_varied_params = vary_param_ls.count(True)
         self.value_param_ls = value_param_ls
 
-        self.model = lmfit.Model(self.fit_function)
+        self.model = lmfit.Model(self.fit_func)
 
         # Add the parameters to the model.
         # Note that lmfit creates parameters also for fixed parameters.
@@ -445,7 +445,7 @@ class Bootstrapper():
                         data=sampling_results,
                         param_descr=model_param_name,
                         sample_descr=self.sample_descr,
-                        fit_function_descr=self.fit_function_descr,
+                        fit_func_descr=self.fit_func_descr,
                         wavelength_str="",
                         bins=bins,
                         save_fig=save_fig,
@@ -471,7 +471,7 @@ class Bootstrapper():
                             data=sampling_results,
                             param_descr=model_param_name,
                             sample_descr=self.sample_descr,
-                            fit_function_descr=self.fit_function_descr,
+                            fit_func_descr=self.fit_func_descr,
                             wavelength_str=wavelength_str,
                             bins=bins,
                             save_fig=save_fig,
@@ -509,13 +509,13 @@ class Bootstrapper():
             fitted_param = {
                 key: self.results[key] for key in self.varied_param_ls
             }
-            func_data = self.fit_function(
+            func_data = self.fit_func(
                 spatial_frequency_func, **self.fixed_param, **fitted_param
             )
             func_label = "result"
         except AttributeError:
             try:
-                func_data = self.fit_function(
+                func_data = self.fit_func(
                     spatial_frequency_func, *self.value_param_ls
                 )
                 func_label = "initial guess"
@@ -532,6 +532,6 @@ class Bootstrapper():
             func_label=func_label,
             fit_vis_or_vis2=self.fit_vis_or_vis2,
             sample_descr=self.sample_descr,
-            fit_function_descr=self.fit_function_descr,
+            fit_func_descr=self.fit_func_descr,
             wavelength_descr="all_waves"
         )
