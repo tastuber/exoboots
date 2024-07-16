@@ -248,12 +248,12 @@ class Bootstrapper():
             [self.N_wavelength, self.N_varied_params]
         )
 
-        for i_wavelength in range(self.N_wavelength):
+        for i_wave in range(self.N_wavelength):
 
             for i_sample in range(self.N_sample):
 
                 (data, spatial_frequency, weight) = (
-                    self.sample_baselines_for_fixed_wavelength(i_wavelength)
+                    self.sample_baselines_for_fixed_wavelength(i_wave)
                 )
 
                 result = self.model.fit(
@@ -271,38 +271,38 @@ class Bootstrapper():
                     if self.vary_param_ls[i_fit_param]:
 
                         self.sampling_results[
-                            i_wavelength, i_varied_param, i_sample
+                            i_wave, i_varied_param, i_sample
                         ] = best_value
                         i_varied_param += 1
 
-            param_results_median[i_wavelength] = np.median(
-                self.sampling_results[i_wavelength], axis=1
+            param_results_median[i_wave] = np.median(
+                self.sampling_results[i_wave], axis=1
             )
-            param_results_error_minus[i_wavelength] = (
-                param_results_median[i_wavelength]
-                - np.percentile(self.sampling_results[i_wavelength], 16, axis=1)
+            param_results_error_minus[i_wave] = (
+                param_results_median[i_wave]
+                - np.percentile(self.sampling_results[i_wave], 16, axis=1)
             )
-            param_results_error_plus[i_wavelength] = (
-                np.percentile(self.sampling_results[i_wavelength], 84, axis=1)
-                - param_results_median[i_wavelength]
+            param_results_error_plus[i_wave] = (
+                np.percentile(self.sampling_results[i_wave], 84, axis=1)
+                - param_results_median[i_wave]
             )
 
             # Store final results in dictionary.
             wavelength_str = (
-                f"{self.wavelength_ls[i_wavelength]*1e6:.4f} micron"
+                f"{self.wavelength_ls[i_wave]*1e6:.4f} micron"
             )
             for i_varied_param, varied_param in enumerate(
                 self.varied_param_ls
             ):
 
                 self.results[f"{wavelength_str}: {varied_param}"] = (
-                    param_results_median[i_wavelength, i_varied_param]
+                    param_results_median[i_wave, i_varied_param]
                 )
                 self.results[f"{wavelength_str}: +Delta {varied_param}"] = (
-                    param_results_error_plus[i_wavelength, i_varied_param]
+                    param_results_error_plus[i_wave, i_varied_param]
                 )
                 self.results[f"{wavelength_str}: -Delta {varied_param}"] = (
-                    param_results_error_minus[i_wavelength, i_varied_param]
+                    param_results_error_minus[i_wave, i_varied_param]
                 )
 
     def sample_data_points(self):
@@ -341,12 +341,12 @@ class Bootstrapper():
 
         return data_tuple
 
-    def sample_baselines_for_fixed_wavelength(self, i_wavelength: int):
+    def sample_baselines_for_fixed_wavelength(self, i_wave: int):
         """
         Sample for a selected wavelength the different baselines.
 
         Args:
-            i_wavelength: The index of the wavelength to be sampled. This picks
+            i_wave: The index of the wavelength to be sampled. This picks
               a Data_per_wavelength object from self.data_per_wavelength.
 
         Returns:
@@ -354,9 +354,9 @@ class Bootstrapper():
 
         (data, spatial_frequency, weight) = (
             self.resample_parallel(
-                (self.data_per_wavelength[i_wavelength].data,
-                 self.data_per_wavelength[i_wavelength].spatial_frequency,
-                 self.data_per_wavelength[i_wavelength].weight)
+                (self.data_per_wavelength[i_wave].data,
+                 self.data_per_wavelength[i_wave].spatial_frequency,
+                 self.data_per_wavelength[i_wave].weight)
             )
         )
 
@@ -455,15 +455,15 @@ class Bootstrapper():
             # Plot for each wavelength one histogram per fitted parameter.
             case 4:
 
-                for i_wavelength in range(self.N_wavelength):
+                for i_wave in range(self.N_wavelength):
 
-                    wavelength = self.wavelength_ls[i_wavelength]
+                    wavelength = self.wavelength_ls[i_wave]
                     wavelength_str = (
                         f"{wavelength*1e6:.4f} micron"
                     )
 
                     for sampling_results, model_param_name in zip(
-                        self.sampling_results[i_wavelength],
+                        self.sampling_results[i_wave],
                         self.varied_param_ls
                     ):
                         # Missing: wavelength
