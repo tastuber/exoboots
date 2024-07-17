@@ -481,57 +481,11 @@ class Bootstrapper():
     def plot_data(
         self,
         plot_data_uncertainty: bool = True,
+        figsize: tuple[float, float] = (16, 8),
+        save_fig: bool = True,
+        save_fig_path: str = "../figures/",
+        title: str = ""
     ):
 
-        (data, data_error,
-         _, spatial_frequency, _) = self.full_data_set.get_all_data_flattened()
-
-        if not plot_data_uncertainty:
-            data_error = None
-
-        # Compute the data of the model if it is already set up. If it is set
-        # up, but the bootstrapping has not been performed, plot the model with
-        # the initial values. If the bootstrapping has been performed, plot the
-        # model with the best fit parameters.
-
-        # Derive different data intervals for the measured data, the analytic
-        # function, and the axis. Each interval border is 5% smaller/larger
-        # than the former.
-        spatial_frequency_min = spatial_frequency.min()
-        spatial_frequency_max = spatial_frequency.max()
-        func_min = 0.95 * spatial_frequency_min
-        func_max = 1.05 * spatial_frequency_max
-        xlim = (0.95*func_min, 1.05*func_max)
-
-        spatial_frequency_func = np.geomspace(func_min, func_max, 100)
-
-        try:
-            fitted_param = {
-                key: self.results[key] for key in self.varied_param_ls
-            }
-            func_data = self.fit_func(
-                spatial_frequency_func, **self.fixed_param, **fitted_param
-            )
-            func_label = "result"
-        except AttributeError:
-            try:
-                func_data = self.fit_func(
-                    spatial_frequency_func, *self.value_param_ls
-                )
-                func_label = "initial guess"
-            except AttributeError:
-                func_data = None
-                func_label = None
-
-        plotting.plot_vis(
-            spatial_frequency=spatial_frequency,
-            data=data,
-            data_error=data_error,
-            spatial_frequency_func=spatial_frequency_func,
-            func_data=func_data,
-            func_label=func_label,
-            fit_vis_or_vis2=self.fit_vis_or_vis2,
-            sample_descr=self.sample_descr,
-            fit_func_descr=self.fit_func_descr,
-            wavelength_descr="all_waves"
-        )
+        plotting.plot_vis(self, plot_data_uncertainty, figsize, save_fig,
+                          save_fig_path, title)

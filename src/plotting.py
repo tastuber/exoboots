@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from matplotlib.backends.backend_pdf import PdfPages
+
 def plot_histogram(
         data: np.array,
         param_descr: str,
@@ -102,23 +104,117 @@ def plot_histogram(
         )
         fig.savefig(save_fig_path+fig_name, format=fig_format)
 
-def plot_vis(
-        spatial_frequency,
-        data,
-        fit_vis_or_vis2,
-        sample_descr,
-        fit_func_descr,
-        wavelength_descr,
-        data_error = None,
-        spatial_frequency_func = None,
-        func_data = None,
-        func_label = None,
-        title = "",
-        figsize = (16, 8),
-        save_fig = True,
-        save_fig_path = "../figures/"
+def plot_vis(bs, plot_data_uncertainty, figsize, save_fig, save_fig_path,
+             title):
+
+    match bs.bootstrap_selector:
+        case 1 | 2 | 3:
+            plot_vis_all_wavelengths(bs, plot_data_uncertainty, figsize,
+                                     save_fig, save_fig_path, title)
+        case 4:
+            plot_vis_for_fixed_wavelengths(bs, plot_data_uncertainty, figsize,
+                                           save_fig, save_fig_path, title)
+
+def plot_vis_all_wavelengths(
+        bs,
+        plot_data_uncertainty,
+        figsize,
+        save_fig,
+        save_fig_path,
+        title
 ):
 
+    wavelength_descr = "all_waves"
+
+    ##### Precalculations.
+    (data, data_error,
+     _, spatial_frequency, _) = bs.full_data_set.get_all_data_flattened()
+
+    if not plot_data_uncertainty:
+        data_error = None
+
+    # Compute the data of the model if it is already set up. If it is set
+    # up, but the bootstrapping has not been performed, plot the model with
+    # the initial values. If the bootstrapping has been performed, plot the
+    # model with the best fit parameters.
+
+    # Derive different data intervals for the measured data, the analytic
+    # function, and the axis. Each interval border is 5% smaller/larger
+    # than the former.
+    spatial_frequency_min = spatial_frequency.min()
+    spatial_frequency_max = spatial_frequency.max()
+    func_min = 0.95 * spatial_frequency_min
+    func_max = 1.05 * spatial_frequency_max
+
+    spatial_frequency_func = np.geomspace(func_min, func_max, 100)
+
+    # This is executed if the bootstrapping has been performed.
+    try:
+        fitted_param = {
+            key: bs.results[key] for key in bs.varied_param_ls
+        }
+        func_data = bs.fit_func(
+            spatial_frequency_func, **bs.fixed_param, **fitted_param
+        )
+        func_label = "result"
+
+        # Create string for title with the varied parameter and their
+        # fit results.
+        title_varied_param_str = []
+        for param in bs.varied_param_ls:
+
+            title_varied_param_str.append(
+                f"{get_short_param_str(param)} ="
+                f" {fitted_param[param]:.2}"
+                f" {get_param_unit_str(param)}"
+            )
+        title_varied_param_str = ", ".join(title_varied_param_str)
+
+        # Create string for title with the fixed parameter and their
+        # values.
+        title_fixed_param_str = []
+        for param in bs.fixed_param:
+            title_fixed_param_str.append(
+                f"{get_short_param_str(param)} ="
+                f" {bs.fixed_param[param]}"
+                f" {get_param_unit_str(param)}"
+            )
+        title_fixed_param_str = ", ".join(title_fixed_param_str)
+
+        title = (
+            f"Fitted parameters: {title_varied_param_str}\n"
+            f"Fixed parameters: {title_fixed_param_str}"
+        )
+
+    # This is executed if the bootstrapping has not been performed.
+    except AttributeError:
+
+        # This is executed if the model has been set up.
+        try:
+            func_data = bs.fit_func(
+                spatial_frequency_func, *bs.value_param_ls
+            )
+            func_label = "initial guess"
+
+            # Create string for title with the initial parameter values
+            # before fitting.
+            title_init_param_str = []
+            for i_param, param in enumerate(bs.model.param_names):
+                title_init_param_str.append(
+                    f"{get_short_param_str(param)} = "
+                    f"{bs.value_param_ls[i_param]} "
+                    f"{get_param_unit_str(param)}"
+                )
+            title_init_param_str = ", ".join(title_init_param_str)
+
+            title = f"Initial parameters: {title_init_param_str}\n"
+
+        # This is executed if the model has not been set up.
+        except AttributeError:
+            func_data = None
+            func_label = None
+
+    ##### Actual plotting.
     fig, ax = plt.subplots(figsize=figsize)
 
     ax.errorbar(spatial_frequency, data, yerr=data_error, fmt="x")
@@ -128,19 +224,164 @@ def plot_vis(
         ax.legend()
 
     ax.set_xlabel("spatial frequency")
-    ax.set_ylabel(f"{"squared " if fit_vis_or_vis2=="VIS2" else ""}visibility")
+    ax.set_ylabel(
+        f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility"
+    )
+
+    ax.set_title(title, loc="left")
 
     if save_fig:
         fig_format = "pdf"
         fig_name = get_vis_fig_name(
-            fit_vis_or_vis2=fit_vis_or_vis2,
-            sample_descr=sample_descr,
-            fit_func_descr=fit_func_descr,
+            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            sample_descr=bs.sample_descr,
+            fit_func_descr=bs.fit_func_descr,
             wavelength_descr=wavelength_descr,
             fig_format=fig_format
         )
         fig.savefig(save_fig_path+fig_name, format=fig_format)
 
+def plot_vis_for_fixed_wavelengths(
+        bs,
+        plot_data_uncertainty,
+        figsize,
+        save_fig,
+        save_fig_path,
+        title
+):
+
+    wavelength_descr = "for_single_waves"
+    pdf_name = get_vis_fig_name(
+            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            sample_descr=bs.sample_descr,
+            fit_func_descr=bs.fit_func_descr,
+            wavelength_descr=wavelength_descr,
+            fig_format="pdf"
+    )
+
+    # Make one pdf with each figure on one page.
+    with PdfPages(save_fig_path+pdf_name) as pdf:
+
+        for i_wave in range(bs.N_wavelength):
+
+            ##### Precalculations.
+            wavelength = bs.wavelength_ls[i_wave]
+            wavelength_str = (
+                f"{wavelength*1e6:.4f} micron"
+            )
+
+            spatial_frequency = (
+                bs.data_per_wavelength[i_wave].spatial_frequency
+            )
+            data = bs.data_per_wavelength[i_wave].data
+            data_error = bs.data_per_wavelength[i_wave].data_error
+            if not plot_data_uncertainty:
+                data_error = None
+
+            # Compute the data of the model if it is already set up. If it is
+            # set up, but the bootstrapping has not been performed, plot the
+            # model with the initial values. If the bootstrapping has been
+            # performed, plot the model with the best fit parameters.
+
+            # Derive different data intervals for the measured data, the
+            # analytic function, and the axis. Each interval border is 5%
+            # smaller/larger than the former.
+            spatial_frequency_min = spatial_frequency.min()
+            spatial_frequency_max = spatial_frequency.max()
+            func_min = 0.95 * spatial_frequency_min
+            func_max = 1.05 * spatial_frequency_max
+
+            spatial_frequency_func = np.geomspace(func_min, func_max, 100)
+
+            # This is executed if the bootstrapping has been performed.
+            try:
+                fitted_param = {
+                    param: bs.results[f"{wavelength_str}, {param}"] \
+                    for param in bs.varied_param_ls
+                }
+                func_data = bs.fit_func(
+                    spatial_frequency_func, **bs.fixed_param, **fitted_param
+                )
+                func_label = "result"
+
+                # Create string for title with the varied parameter and their
+                # fit results.
+                title_varied_param_str = []
+                for param in bs.varied_param_ls:
+
+                    title_varied_param_str.append(
+                        f"{get_short_param_str(param)} ="
+                        f" {fitted_param[param]:.2}"
+                        f" {get_param_unit_str(param)}"
+                    )
+                title_varied_param_str = ", ".join(title_varied_param_str)
+
+                # Create string for title with the fixed parameter and their
+                # values.
+                title_fixed_param_str = []
+                for param in bs.fixed_param:
+                    title_fixed_param_str.append(
+                        f"{get_short_param_str(param)} ="
+                        f" {bs.fixed_param[param]}"
+                        f" {get_param_unit_str(param)}"
+                    )
+                title_fixed_param_str = ", ".join(title_fixed_param_str)
+
+                title = (
+                    f"Wavelength = {wavelength_str}\n"
+                    f"Fitted parameters: {title_varied_param_str}\n"
+                    f"Fixed parameters: {title_fixed_param_str}"
+                )
+
+            # This is executed if the bootstrapping has not been performed.
+            except AttributeError:
+
+                # This is executed if the model has been set up.
+                try:
+                    func_data = bs.fit_func(
+                        spatial_frequency_func, *bs.value_param_ls
+                    )
+                    func_label = "initial guess"
+
+                    # Create string for title with the initial parameter values
+                    # before fitting.
+                    title_init_param_str = []
+                    for i_param, param in enumerate(bs.model.param_names):
+                        title_init_param_str.append(
+                            f"{get_short_param_str(param)} = "
+                            f"{bs.value_param_ls[i_param]} "
+                            f"{get_param_unit_str(param)}"
+                        )
+                    title_init_param_str = ", ".join(title_init_param_str)
+
+                    title = (
+                        f"Wavelength = {wavelength_str}\n"
+                        f"Initial parameters: {title_init_param_str}\n"
+                    )
+
+                # This is executed if the model has not been set up.
+                except AttributeError:
+                    func_data = None
+                    func_label = None
+                    title = f"Wavelength = {wavelength_str}"
+
+            ##### Actual plotting.
+            fig, ax = plt.subplots(figsize=figsize)
+
+            ax.errorbar(spatial_frequency, data, yerr=data_error, fmt="x")
+
+            if np.any(func_data):
+                ax.plot(spatial_frequency_func, func_data, label=func_label)
+                ax.legend()
+
+            ax.set_xlabel("spatial frequency")
+            ax.set_ylabel(
+                f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility"
+            )
+
+            ax.set_title(title, loc="left")
+
+            pdf.savefig(fig)
 
 def get_short_param_str(param_descr: str) -> str:
     """
