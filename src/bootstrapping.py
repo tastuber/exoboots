@@ -165,11 +165,9 @@ class Bootstrapper():
                                           self.N_sample])
 
         # Compute the high level result of the bootstrapping. That is, the
-        # median, the 0.16 quantile, and the 0.84 quantile of the distribution
-        # of best fit parameter values.
+        # median as the best fit value and the difference of the median and the
+        # 0.16 (0.84) quantile as the lower (upper) uncertainty.
         param_results_median = np.zeros(self.N_varied_params)
-        param_results_16percentile = np.zeros(self.N_varied_params)
-        param_results_84percentile = np.zeros(self.N_varied_params)
         param_results_error_minus = np.zeros(self.N_varied_params)
         param_results_error_plus = np.zeros(self.N_varied_params)
 
@@ -197,17 +195,13 @@ class Bootstrapper():
                     i_varied_param += 1
 
         param_results_median = np.median(self.sampling_results, axis=1)
-        param_results_16percentile = np.percentile(
-            self.sampling_results, 16, axis=1
-        )
-        param_results_84percentile = np.percentile(
-            self.sampling_results, 84, axis=1
-        )
         param_results_error_minus = (
-            param_results_median - param_results_16percentile
+            param_results_median
+            - np.quantile(self.sampling_results, 0.16, axis=1)
         )
         param_results_error_plus = (
-            param_results_84percentile - param_results_median
+            np.quantile(self.sampling_results, 0.84, axis=1)
+            - param_results_median
         )
 
         # Store final results in dictionary.
@@ -236,8 +230,8 @@ class Bootstrapper():
         )
 
         # Compute the high level result of the bootstrapping. That is, the
-        # median, the 0.16 quantile, and the 0.84 quantile of the distribution
-        # of best fit parameter values.
+        # median as the best fit value and the difference of the median and the
+        # 0.16 (0.84) quantile as the lower (upper) uncertainty.
         param_results_median = np.zeros(
             [self.N_wavelength, self.N_varied_params]
         )
@@ -280,10 +274,10 @@ class Bootstrapper():
             )
             param_results_error_minus[i_wave] = (
                 param_results_median[i_wave]
-                - np.percentile(self.sampling_results[i_wave], 16, axis=1)
+                - np.quantile(self.sampling_results[i_wave], 0.16, axis=1)
             )
             param_results_error_plus[i_wave] = (
-                np.percentile(self.sampling_results[i_wave], 84, axis=1)
+                np.quantile(self.sampling_results[i_wave], 0.84, axis=1)
                 - param_results_median[i_wave]
             )
 
