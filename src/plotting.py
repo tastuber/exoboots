@@ -3,15 +3,85 @@ import numpy as np
 
 from matplotlib.backends.backend_pdf import PdfPages
 
+def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
+
+    match bs.bootstrap_selector:
+        case 1 | 2 | 3:
+
+            wavelength_str = "all_waves"
+
+            for sampling_results, model_param_name in zip(
+                    bs.sampling_results, bs.varied_param_ls
+                ):
+
+                plot_histogram(
+                    data=sampling_results,
+                    param_descr=model_param_name,
+                    sample_descr=bs.sample_descr,
+                    fit_func_descr=bs.fit_func_descr,
+                    wavelength_str=wavelength_str,
+                    bins=bins,
+                    figsize=figsize,
+                    save_fig=save_fig,
+                    save_fig_path=save_fig_path
+                )
+
+        case 4:
+
+            wavelength_descr = "for_single_waves"
+
+            for i_varied_param, model_param_name in enumerate(bs.varied_param_ls):
+
+                sampling_results_per_param = (
+                    bs.sampling_results[:, i_varied_param, :]
+                )
+
+                pdf_name = get_hist_fig_name(
+                    model_param_name, bs.sample_descr, bs.fit_func_descr,
+                    wavelength_str=wavelength_descr, fig_format="pdf"
+                )
+
+
+                fig_ls = [] #  Create list of figures for saving
+                for i_wave, sampling_results in enumerate(sampling_results_per_param):
+
+                    wavelength = bs.wavelength_ls[i_wave]
+                    wavelength_str = (
+                        f"{wavelength*1e6:.4f} micron"
+                    )
+
+                    fig = plot_histogram(
+                        data=sampling_results,
+                        param_descr=model_param_name,
+                        sample_descr=bs.sample_descr,
+                        fit_func_descr=bs.fit_func_descr,
+                        wavelength_str=wavelength_str,
+                        bins=bins,
+                        figsize=figsize,
+                        save_fig=False,
+                        save_fig_path=save_fig_path
+                    )
+                    fig_ls.append(fig)
+
+                if save_fig:
+
+                    # Make one pdf with each figure on one page.
+                    with PdfPages(save_fig_path+pdf_name) as pdf:
+
+                        for fig in fig_ls:
+
+                            pdf.savefig(fig)
+
 def plot_histogram(
         data: np.array,
         param_descr: str,
         sample_descr: str,
         fit_func_descr: str,
-        wavelength_str: str = "",
-        bins: int = 20,
-        save_fig: bool = True,
-        save_fig_path: str = "../figures/"
+        wavelength_str: str,
+        bins: int,
+        figsize: tuple[float, float],
+        save_fig: bool,
+        save_fig_path: str
 ):
     """
     Plot the bootstrap histogram for a given parameter.
@@ -30,7 +100,7 @@ def plot_histogram(
           "../figures/".
     """
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=figsize)
     ax.hist(x=data, bins=bins)
 
     # Obtain various strings for title, axes labels, and legend.
@@ -103,6 +173,8 @@ def plot_histogram(
             wavelength_str=wavelength_str, fig_format=fig_format
         )
         fig.savefig(save_fig_path+fig_name, format=fig_format)
+
+    return fig
 
 def plot_vis(bs, plot_data_uncertainty, figsize, save_fig, save_fig_path,
              title):

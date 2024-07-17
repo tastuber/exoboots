@@ -35,6 +35,8 @@ class Bootstrapper():
             for i in range(self.N_wavelength)
         ]
 
+        self.default_save_fig_path = "../figures/"
+
         # Set up random number generator.
         self.rng_seed = rng_seed
         self.rng = np.random.default_rng(self.rng_seed)
@@ -422,64 +424,33 @@ class Bootstrapper():
     def plot_bootstrap_histograms(
         self,
         bins: int = 20,
+        figsize: tuple[float, float] = (10, 8),
         save_fig: bool = True,
-        save_fig_path: str = "../figures/"
+        save_fig_path: str | None = None
     ):
 
-        match self.bootstrap_selector:
+        if not save_fig_path:
+            save_fig_path = self.default_save_fig_path
 
-            # Plot one histogram per fitted parameter.
-            case 1 | 2 | 3:
-
-                for sampling_results, model_param_name in zip(
-                    self.sampling_results, self.varied_param_ls
-                ):
-
-                    plotting.plot_histogram(
-                        data=sampling_results,
-                        param_descr=model_param_name,
-                        sample_descr=self.sample_descr,
-                        fit_func_descr=self.fit_func_descr,
-                        wavelength_str="",
-                        bins=bins,
-                        save_fig=save_fig,
-                        save_fig_path=save_fig_path
-                    )
-
-            # Plot for each wavelength one histogram per fitted parameter.
-            case 4:
-
-                for i_wave in range(self.N_wavelength):
-
-                    wavelength = self.wavelength_ls[i_wave]
-                    wavelength_str = (
-                        f"{wavelength*1e6:.4f} micron"
-                    )
-
-                    for sampling_results, model_param_name in zip(
-                        self.sampling_results[i_wave],
-                        self.varied_param_ls
-                    ):
-                        # Missing: wavelength
-                        plotting.plot_histogram(
-                            data=sampling_results,
-                            param_descr=model_param_name,
-                            sample_descr=self.sample_descr,
-                            fit_func_descr=self.fit_func_descr,
-                            wavelength_str=wavelength_str,
-                            bins=bins,
-                            save_fig=save_fig,
-                            save_fig_path=save_fig_path
-                        )
+        plotting.call_plot_histogram(
+            self,
+            bins=bins,
+            figsize=figsize,
+            save_fig=save_fig,
+            save_fig_path=save_fig_path
+        )
 
     def plot_data(
         self,
         plot_data_uncertainty: bool = True,
         figsize: tuple[float, float] = (16, 8),
         save_fig: bool = True,
-        save_fig_path: str = "../figures/",
+        save_fig_path: str | None = None,
         title: str = ""
     ):
+
+        if not save_fig_path:
+            save_fig_path = self.default_save_fig_path
 
         plotting.plot_vis(self, plot_data_uncertainty, figsize, save_fig,
                           save_fig_path, title)
