@@ -192,7 +192,7 @@ def plot_vis_all_wavelengths(
         # This is executed if the model has been set up.
         try:
             func_data = bs.fit_func(
-                spatial_frequency_func, *bs.value_param_ls
+                spatial_frequency_func, *bs.param_init_value_ls
             )
             func_label = "initial guess"
 
@@ -202,7 +202,7 @@ def plot_vis_all_wavelengths(
             for i_param, param in enumerate(bs.model.param_names):
                 title_init_param_str.append(
                     f"{get_short_param_str(param)} = "
-                    f"{bs.value_param_ls[i_param]} "
+                    f"{bs.param_init_value_ls[i_param]} "
                     f"{get_param_unit_str(param)}"
                 )
             title_init_param_str = ", ".join(title_init_param_str)
@@ -339,7 +339,7 @@ def plot_vis_for_fixed_wavelengths(
                 # This is executed if the model has been set up.
                 try:
                     func_data = bs.fit_func(
-                        spatial_frequency_func, *bs.value_param_ls
+                        spatial_frequency_func, *bs.param_init_value_ls
                     )
                     func_label = "initial guess"
 
@@ -349,7 +349,7 @@ def plot_vis_for_fixed_wavelengths(
                     for i_param, param in enumerate(bs.model.param_names):
                         title_init_param_str.append(
                             f"{get_short_param_str(param)} = "
-                            f"{bs.value_param_ls[i_param]} "
+                            f"{bs.param_init_value_ls[i_param]} "
                             f"{get_param_unit_str(param)}"
                         )
                     title_init_param_str = ", ".join(title_init_param_str)

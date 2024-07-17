@@ -87,7 +87,7 @@ class Bootstrapper():
                 )
 
     def setup_model(
-            self, vary_param_ls: list[bool], value_param_ls: list[float],
+            self, vary_param_ls: list[bool], param_init_value_ls: list[float],
             low_bound_param_ls: list[float], up_bound_param_ls: list[float]
     ):
         """
@@ -100,7 +100,7 @@ class Bootstrapper():
         Args:
             vary_param_ls: Defines whether the parameter shall be varied and
               optimized or remains fixed.
-            value_param_ls: Gives the inital value of the parameters. For fixed
+            param_init_value_ls: Gives the inital value of the parameters. For fixed
               parameters, this is the fixed value.
             low_bound_param_ls: Lower bound for the fitting process. Only has
               effect on varied parameters.
@@ -110,7 +110,7 @@ class Bootstrapper():
 
         self.vary_param_ls = vary_param_ls
         self.N_varied_params = vary_param_ls.count(True)
-        self.value_param_ls = value_param_ls
+        self.param_init_value_ls = param_init_value_ls
 
         self.model = lmfit.Model(self.fit_func)
 
@@ -119,7 +119,7 @@ class Bootstrapper():
         self.model_params = lmfit.Parameters()
         for (param_name, vary_param, value_param, low_bound_param,
              up_bound_param) in zip(
-                self.model.param_names, self.vary_param_ls, value_param_ls,
+                self.model.param_names, self.vary_param_ls, param_init_value_ls,
                 low_bound_param_ls, up_bound_param_ls
             ):
             self.model_params.add(
@@ -138,7 +138,7 @@ class Bootstrapper():
         for i_fixed_param, (fixed_param, fixed_param_value) in enumerate(zip(
             itertools.compress(self.model.param_names,
                                np.invert(self.vary_param_ls)),
-            itertools.compress(self.value_param_ls,
+            itertools.compress(self.param_init_value_ls,
                                np.invert(self.vary_param_ls)))
         ):
 
