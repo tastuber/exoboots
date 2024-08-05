@@ -8,7 +8,7 @@ def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
     match bs.bootstrap_selector:
         case 1 | 2 | 3:
 
-            wavelength_str = "all_waves"
+            wavelength_descr = "all_waves"
 
             for sampling_results, model_param_name in zip(
                     bs.sampling_results, bs.varied_param_ls
@@ -19,7 +19,7 @@ def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
                     param_descr=model_param_name,
                     sample_descr=bs.sample_descr,
                     fit_func_descr=bs.fit_func_descr,
-                    wavelength_str=wavelength_str,
+                    wavelength_str=wavelength_descr,
                     bins=bins,
                     figsize=figsize,
                     save_fig=save_fig,
