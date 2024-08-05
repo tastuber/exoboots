@@ -38,7 +38,7 @@ def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
 
                 pdf_name = get_hist_fig_name(
                     model_param_name, bs.sample_descr, bs.fit_func_descr,
-                    wavelength_str=wavelength_descr, fig_format="pdf"
+                    wavelength_str=wavelength_descr, file_format="pdf"
                 )
 
 
@@ -167,12 +167,12 @@ def plot_histogram(
     ax.set_ylabel("counts")
 
     if save_fig:
-        fig_format = "pdf"
+        file_format = "pdf"
         fig_name = get_hist_fig_name(
             param_descr, sample_descr, fit_func_descr,
-            wavelength_str=wavelength_str, fig_format=fig_format
+            wavelength_str=wavelength_str, file_format=file_format
         )
-        fig.savefig(save_fig_path+fig_name, format=fig_format)
+        fig.savefig(save_fig_path+fig_name, format=file_format)
 
     return fig
 
@@ -303,15 +303,15 @@ def plot_vis_all_wavelengths(
     ax.set_title(title, loc="left")
 
     if save_fig:
-        fig_format = "pdf"
+        file_format = "pdf"
         fig_name = get_vis_fig_name(
             fit_vis_or_vis2=bs.fit_vis_or_vis2,
             sample_descr=bs.sample_descr,
             fit_func_descr=bs.fit_func_descr,
             wavelength_descr=wavelength_descr,
-            fig_format=fig_format
+            file_format=file_format
         )
-        fig.savefig(save_fig_path+fig_name, format=fig_format)
+        fig.savefig(save_fig_path+fig_name, format=file_format)
 
 def plot_vis_for_fixed_wavelengths(
         bs,
@@ -328,7 +328,7 @@ def plot_vis_for_fixed_wavelengths(
             sample_descr=bs.sample_descr,
             fit_func_descr=bs.fit_func_descr,
             wavelength_descr=wavelength_descr,
-            fig_format="pdf"
+            file_format="pdf"
     )
 
     # Make one pdf with each figure on one page.
@@ -455,9 +455,131 @@ def plot_vis_for_fixed_wavelengths(
 
             pdf.savefig(fig)
 
-def plot_dust_sed(dust_sed: tuple):
-    """"""
-    pass
+def plot_relative_sed(
+        bs,
+        plot_data_uncertainty,
+        figsize,
+        save_fig,
+        save_fig_path,
+        wavelength_descr,
+        title = "Relative SED"
+):
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    if plot_data_uncertainty:
+
+        # Specific format for plt.errorbar to work with one and multiple data
+        # points at the same time.
+        if type(bs.relative_sed["dust to star flux ratio"]) == np.float64:
+            yerr = [
+                [bs.relative_sed["+Delta dust to star flux ratio"]],
+                [bs.relative_sed["-Delta dust to star flux ratio"]]
+            ]
+        else:
+            yerr = (bs.relative_sed["+Delta dust to star flux ratio"],
+                    bs.relative_sed["-Delta dust to star flux ratio"])
+
+        ax.errorbar(
+            x=bs.relative_sed["wavelength [m]"],
+            y=bs.relative_sed["dust to star flux ratio"],
+            yerr=yerr,
+            marker="x"
+        )
+
+    else:
+
+        # Plot single data point. Otherwise in the special case on only one
+        # data point and not to be plotted errorbars, nothing is displayed.
+        #if type(bs.sed["dust flux [Jy]"]) == np.float64:
+        if type(bs.relative_sed["wavelength [m]"]) == np.float64:
+            marker = "x"
+        else:
+            marker = None
+
+        ax.plot(
+             bs.relative_sed["wavelength [m]"],
+             bs.relative_sed["dust to star flux ratio"],
+             marker=marker
+        )
+
+    ax.set_title(title, loc="right")
+    ax.set_xlabel("wavelength /m")
+    ax.set_ylabel("dust to star flux ratio")
+
+    if save_fig:
+        file_format = "pdf"
+        fig_name = get_sed_file_name(
+            sed_descr="relative_SED",
+            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            sample_descr=bs.sample_descr,
+            fit_func_descr=bs.fit_func_descr,
+            wavelength_descr=wavelength_descr,
+            file_format=file_format
+        )
+        fig.savefig(save_fig_path+fig_name, format=file_format)
+
+def plot_dust_sed(
+        bs,
+        plot_data_uncertainty,
+        figsize,
+        save_fig,
+        save_fig_path,
+        wavelength_descr,
+        title = "Dust SED"
+):
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    if plot_data_uncertainty:
+
+        # Specific format for plt.errorbar to work with one and multiple data
+        # points at the same time.
+        if type(bs.sed["dust flux [Jy]"]) == np.float64:
+            yerr = [
+                [bs.sed["+Delta dust flux [Jy]"]],
+                [bs.sed["-Delta dust flux [Jy]"]]
+            ]
+        else:
+            yerr = (bs.sed["+Delta dust flux [Jy]"],
+                    bs.sed["-Delta dust flux [Jy]"])
+
+        ax.errorbar(
+            x=bs.sed["wavelength [m]"],
+            y=bs.sed["dust flux [Jy]"],
+            yerr=yerr,
+            marker="x"
+        )
+
+    else:
+
+        # Plot single data point. Otherwise in the special case on only one
+        # data point and not to be plotted errorbars, nothing is displayed.
+        #if type(bs.sed["dust flux [Jy]"]) == np.float64:
+        if type(bs.sed["wavelength [m]"]) == np.float64:
+            marker = "x"
+        else:
+            marker = None
+
+        ax.plot(
+            bs.sed["wavelength [m]"], bs.sed["dust flux [Jy]"], marker=marker
+        )
+
+    ax.set_title(title, loc="right")
+    ax.set_xlabel("wavelength /m")
+    ax.set_ylabel("dust flux /Jy")
+
+    if save_fig:
+        file_format = "pdf"
+        fig_name = get_sed_file_name(
+            sed_descr="SED",
+            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            sample_descr=bs.sample_descr,
+            fit_func_descr=bs.fit_func_descr,
+            wavelength_descr=wavelength_descr,
+            file_format=file_format
+        )
+        fig.savefig(save_fig_path+fig_name, format=file_format)
 
 def get_short_param_str(param_descr: str) -> str:
     """
@@ -547,7 +669,7 @@ def get_hist_xlabel(param_descr: str):
 
 def get_hist_fig_name(
         param_descr: str, sample_descr: str, fit_func_descr: str,
-        wavelength_str: str, fig_format: str
+        wavelength_str: str, file_format: str
 ):
     """
     Returns the figure file name for given fit parameter and settings.
@@ -560,7 +682,7 @@ def get_hist_fig_name(
         fit_func_descr: Descriptor of the chosen fit function.
         wavelength_str: String representation of the wavelength. Use is
           intended for the case of fitting to each wavelength separately.
-        fig_format: The file format.
+        file_format: The file format.
 
     Returns:
         fig_name: The figure file name.
@@ -568,14 +690,14 @@ def get_hist_fig_name(
 
     fig_name = (
         f"{"_".join([param_descr, "hist", sample_descr, fit_func_descr])}"
-        f"{f"_{wavelength_str}" if wavelength_str!="" else ""}.{fig_format}"
+        f"{f"_{wavelength_str}" if wavelength_str!="" else ""}.{file_format}"
     )
 
     return fig_name
 
 def get_vis_fig_name(
         fit_vis_or_vis2: str, sample_descr: str,
-        fit_func_descr: str, wavelength_descr: str, fig_format: str
+        fit_func_descr: str, wavelength_descr: str, file_format: str
 ):
     """
     Returns the figure file name for given fit parameter and settings.
@@ -587,7 +709,7 @@ def get_vis_fig_name(
         fit_func_descr: Descriptor of the chosen fit function.
         wavelength_descr: Contains information about the wavelengths.
           Typically either all wavelengths are fitted together or separately.
-        fig_format: The file format.
+        file_format: The file format.
 
     Returns:
         fig_name: The figure file name.
@@ -600,20 +722,20 @@ def get_vis_fig_name(
     fig_name = (
         f"{"_".join([fit_vis_or_vis2, sample_descr, fit_func_descr,
                      wavelength_descr])}"
-        f".{fig_format}"
+        f".{file_format}"
     )
 
     return fig_name
 
-def get_table_file_name(
-        table_descr: str, fit_vis_or_vis2: str, sample_descr: str,
+def get_sed_file_name(
+        sed_descr: str, fit_vis_or_vis2: str, sample_descr: str,
         fit_func_descr: str, wavelength_descr: str, file_format: str
 ):
     """
-    Returns the file name for a table for given fit parameter and settings.
+    Returns the file name for a SED for given fit parameter and settings.
 
     Args:
-        table_descr: Descriptor of the table.
+        sed_descr: Descriptor of the table.
         sample_descr: Descriptor of the chosen sampling during
           bootstrapping, such as data points, baselines, observations or
           data points per wavelength.
@@ -623,17 +745,17 @@ def get_table_file_name(
         file_format: The file format.
 
     Returns:
-        table_name: The file name of the table.
+        sed_name: The file name.
     """
 
     # Remove the "VISAMP_" or "VIS2_" from fit_func_desc as it is present in
     # fit_vis_or_vis2 anyway.
     fit_func_descr = "_".join(fit_func_descr.split("_")[1:])
 
-    table_name = (
-        f"{"_".join([table_descr, fit_vis_or_vis2, sample_descr,
+    sed_name = (
+        f"{"_".join([sed_descr, fit_vis_or_vis2, sample_descr,
                      fit_func_descr, wavelength_descr])}"
         f".{file_format}"
     )
 
-    return table_name
+    return sed_name

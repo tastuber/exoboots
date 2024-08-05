@@ -74,21 +74,25 @@ class Bootstrapper():
                 # Sample all vis. measurements, so sample the full data set
                 self.sample = self.sample_data_points
                 self.sample_descr = "sampled_data_points"
+                self.wavelength_descr = "all_waves"
             case 2:
                 # Sample the baselines, so treat all data for one baseline
                 # fully correlated.
                 self.sample = self.sample_baselines
                 self.sample_descr = "sampled_baselines"
+                self.wavelength_descr = "all_waves"
             case 3:
                 # Sample complete observations.
                 self.sample = self.sample_observations
                 self.sample_descr = "sampled_observations"
+                self.wavelength_descr = "all_waves"
             case 4:
                 # Fit for selected wavelengths the data points, i.e., sample
                 # for given wavelengths the baselines.
                 self.sample_descr = (
                     "sampled_baselines_for_fixed_wavelength"
                 )
+                self.wavelength_descr = "for_single_waves"
 
     def setup_model(
             self, vary_param_ls: list[bool], param_init_value_ls: list[float],
@@ -414,18 +418,12 @@ class Bootstrapper():
 
     def save_relative_sed(self, save_sed_path: str = "../result_tables/"):
 
-        match self.bootstrap_selector:
-            case 1 | 2 | 3:
-                wavelength_descr = "all_waves"
-            case 4:
-                wavelength_descr = "for_single_waves"
-
         file_name = plotting.get_table_file_name(
             table_descr="relative_SED",
             fit_vis_or_vis2=self.fit_vis_or_vis2,
             sample_descr=self.sample_descr,
             fit_func_descr=self.fit_func_descr,
-            wavelength_descr=wavelength_descr,
+            wavelength_descr=self.wavelength_descr,
             file_format="txt"
         )
 
@@ -438,18 +436,12 @@ class Bootstrapper():
 
     def save_sed(self, save_sed_path: str = "../result_tables/"):
 
-        match self.bootstrap_selector:
-            case 1 | 2 | 3:
-                wavelength_descr = "all_waves"
-            case 4:
-                wavelength_descr = "for_single_waves"
-
         file_name = plotting.get_table_file_name(
             table_descr="SED",
             fit_vis_or_vis2=self.fit_vis_or_vis2,
             sample_descr=self.sample_descr,
             fit_func_descr=self.fit_func_descr,
-            wavelength_descr=wavelength_descr,
+            wavelength_descr=self.wavelength_descr,
             file_format="txt"
         )
 
@@ -613,3 +605,37 @@ class Bootstrapper():
 
         plotting.plot_vis(self, plot_data_uncertainty, figsize, save_fig,
                           save_fig_path, title)
+
+    def plot_dust_sed(
+        self,
+        plot_data_uncertainty: bool = True,
+        figsize: tuple[float, float] = (16, 8),
+        save_fig: bool = True,
+        save_fig_path: str | None = None,
+        title: str = ""
+    ):
+
+        if not save_fig_path:
+            save_fig_path = self.default_save_fig_path
+
+        plotting.plot_dust_sed(
+            self, plot_data_uncertainty, figsize, save_fig, save_fig_path,
+            self.wavelength_descr, title
+        )
+
+    def plot_relative_sed(
+        self,
+        plot_data_uncertainty: bool = True,
+        figsize: tuple[float, float] = (16, 8),
+        save_fig: bool = True,
+        save_fig_path: str | None = None,
+        title: str = ""
+    ):
+
+        if not save_fig_path:
+            save_fig_path = self.default_save_fig_path
+
+        plotting.plot_relative_sed(
+            self, plot_data_uncertainty, figsize, save_fig, save_fig_path,
+            self.wavelength_descr, title
+        )
