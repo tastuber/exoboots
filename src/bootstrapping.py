@@ -1,5 +1,7 @@
 import itertools
 
+import astropy.constants as c
+import astropy.units as u
 import lmfit
 import numpy as np
 
@@ -148,6 +150,8 @@ class Bootstrapper():
                 fixed_param_value
             )
 
+    # TODO: Move this function into the case selection in __init__(). Make
+    # the do_bootstrapping an attribute.
     def do_bootstrapping(self):
         """Perform the bootstrapping with the chosen settings."""
 
@@ -207,23 +211,43 @@ class Bootstrapper():
         )
 
         # Store final results in dictionary.
+        # If the parameter is the relative flux of the dust ('f'), write
+        # this in an additional dictionary array 'relative_sed' for easy
+        # plotting and saving.
         self.results = {}
+        relative_sed = np.zeros(4)
+        mean_wavelength = np.mean(self.wavelength_ls)
         for i_varied_param, varied_param in enumerate(self.varied_param_ls):
 
-            self.results[varied_param] = (
-                param_results_median[i_varied_param]
-            )
-            self.results[f"+Delta {varied_param}"] = (
-                param_results_error_plus[i_varied_param]
-            )
-            self.results[f"-Delta {varied_param}"] = (
-                param_results_error_minus[i_varied_param]
-            )
+            param_median = param_results_median[i_varied_param]
+            param_error_plus = param_results_error_plus[i_varied_param]
+            param_error_minus = param_results_error_minus[i_varied_param]
+
+            self.results[varied_param] = param_median
+            self.results[f"+Delta {varied_param}"] = param_error_plus
+            self.results[f"-Delta {varied_param}"] = param_error_minus
+
+            if varied_param == "f":
+
+                relative_sed[0] = mean_wavelength
+                relative_sed[1] = param_median
+                relative_sed[2] = param_error_plus
+                relative_sed[3] = param_error_minus
+
+        if np.any(relative_sed):
+
+            self.relative_sed = {
+                "wavelength [m]": relative_sed[0],
+                "dust to star flux ratio": relative_sed[1],
+                "+Delta dust to star flux ratio": relative_sed[2],
+                "-Delta dust to star flux ratio": relative_sed[3]
+            }
 
     def do_bootstrapping_for_fixed_wavelengths(self):
         """Do a bootstrap fit each wavelength."""
 
         self.results = {}
+        relative_sed = np.zeros([4, self.N_wavelength])
 
         # Store the full results from the bootstrapping, thus the fit results
         # for every sample.
@@ -245,6 +269,8 @@ class Bootstrapper():
         )
 
         for i_wave in range(self.N_wavelength):
+
+            wavelength = self.wavelength_ls[i_wave]
 
             for i_sample in range(self.N_sample):
 
@@ -284,22 +310,107 @@ class Bootstrapper():
             )
 
             # Store final results in dictionary.
+            # If the parameter is the relative flux of the dust ('f'), write
+            # this in an additional dictionary array 'relative_sed' for easy
+            # plotting and saving.
             wavelength_str = (
-                f"{self.wavelength_ls[i_wave]*1e6:.4f} micron"
+                f"{wavelength*1e6:.4f} micron"
             )
             for i_varied_param, varied_param in enumerate(
                 self.varied_param_ls
             ):
 
+                param_median = param_results_median[i_wave, i_varied_param]
+                param_error_plus = param_results_error_plus[i_wave,
+                                                            i_varied_param]
+                param_error_minus = param_results_error_minus[i_wave,
+                                                              i_varied_param]
+
                 self.results[f"{wavelength_str}, {varied_param}"] = (
-                    param_results_median[i_wave, i_varied_param]
+                    param_median
                 )
                 self.results[f"{wavelength_str}, +Delta {varied_param}"] = (
-                    param_results_error_plus[i_wave, i_varied_param]
+                    param_error_plus
                 )
                 self.results[f"{wavelength_str}, -Delta {varied_param}"] = (
-                    param_results_error_minus[i_wave, i_varied_param]
+                    param_error_minus
                 )
+
+                if varied_param == "f":
+
+                    relative_sed[0][i_wave] = wavelength
+                    relative_sed[1][i_wave] = param_median
+                    relative_sed[2][i_wave] = param_error_plus
+                    relative_sed[3][i_wave] = param_error_minus
+
+            if np.any(relative_sed):
+
+                self.relative_sed = {
+                    "wavelength [m]": relative_sed[0],
+                    "dust to star flux ratio": relative_sed[1],
+                    "+Delta dust to star flux ratio": relative_sed[2],
+                    "-Delta dust to star flux ratio": relative_sed[3]
+                }
+
+    def compute_dust_sed(
+            self, T_star: float, R_star: float, dist_star: float
+        ) -> tuple:
+        """
+        Compute the flux from the dust based on a Planck curve for the star.
+
+        Args:
+            T_star: Effective temperature of the central star in units of K.
+            R_star: Radius of the star in units of solar radii.
+            dist_star: Distance to the star in units of parsec.
+
+        Returns:
+            sed: Tuple of five numpy arrays in the form: (wavelength [m], dust
+              SED [Jy], its plus uncertainty [Jy], its minus uncertainty [Jy],
+              stellar SED [Jy]).
+        """
+
+        T_star = T_star * u.K
+        R_star = R_star * u.Rsun
+        dist_star = dist_star * u.parsec
+        wavelength = self.relative_sed["wavelength [m]"] * u.m
+
+        hd1 = (2.0*c.h*c.c**2) / wavelength**5
+        hd2 = ((c.h*c.c) / (c.k_B*T_star*wavelength)).decompose()
+        planck = hd1 / (np.exp(hd2) - 1.0)
+        self.hd1 = hd1
+        self.hd2 = hd2
+        self.planck  = planck
+
+        # Compute the stellar flux in units of Jy.
+        # Explanation:
+        # 4*Pi*R_star is the surface of the star.
+        # The second Pi comes from the integration of the half sphere for
+        # every emitting point (Lambert Cosine Law).
+        # The division by 4*Pi*dist_star is the geometrical dilution (the
+        # more distant the star, the less flux we receive).
+        # The factor wavelength**2/c converts into units of Jy.
+        F_star = (
+            4.0 * np.pi * R_star**2 * np.pi * planck
+            / (4.0*np.pi*dist_star**2) * (wavelength**2/c.c)
+        ).to(u.Jy)
+
+        sed = self.relative_sed["dust to star flux ratio"] * F_star
+        sed_error_plus = (
+            self.relative_sed["+Delta dust to star flux ratio"] * F_star
+        )
+        sed_error_minus = (
+            self.relative_sed["-Delta dust to star flux ratio"] * F_star
+        )
+
+        self.sed = {
+            "wavelength [m]": wavelength.value,
+            "dust flux [Jy]": sed.value,
+            "+Delta dust flux [Jy]": sed_error_plus.value,
+            "-Delta dust flux [Jy]": sed_error_minus.value,
+            "star flux [Jy]": F_star.value
+        }
+
+        return self.sed
 
     def sample_data_points(self):
 
