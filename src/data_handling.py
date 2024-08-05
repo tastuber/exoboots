@@ -94,6 +94,37 @@ def mask_wavelengths(oifits_obj: oifits.oifits, wave_min: float,
 # TO DO:
 # Write function mask_baselines()
 
+def write_dict_to_txt(
+        d: dict, file: str, path: str, header: str | None = None
+):
+    """Write a dictionary into a txt table with keys as column headers."""
+
+    with open(path+file, "w") as f:
+
+        # Write header for the file.
+        if header:
+            f.write("# "+header.replace("\n", "\n# ")+"\n\n")
+
+        # Write column headers.
+        for key in d:
+            f.write(f"{key:<34}")
+            if type(d[key]) == np.float64:
+                len_col = 1
+            else:
+                len_col = len(d[key])
+        f.write("\n")
+
+        # Write rows.
+        if len_col == 1:
+            for key in d:
+                f.write(f"{d[key]:<34}")
+
+        else:
+            for i_row in range(len_col):
+                for key in d:
+                    f.write(f"{d[key][i_row]:<34}")
+                f.write("\n")
+
 class Baseline():
     """Data set of one baseline that can contain different types of data.
 

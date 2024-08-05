@@ -412,6 +412,54 @@ class Bootstrapper():
 
         return self.sed
 
+    def save_relative_sed(self, save_sed_path: str = "../result_tables/"):
+
+        match self.bootstrap_selector:
+            case 1 | 2 | 3:
+                wavelength_descr = "all_waves"
+            case 4:
+                wavelength_descr = "for_single_waves"
+
+        file_name = plotting.get_table_file_name(
+            table_descr="relative_SED",
+            fit_vis_or_vis2=self.fit_vis_or_vis2,
+            sample_descr=self.sample_descr,
+            fit_func_descr=self.fit_func_descr,
+            wavelength_descr=wavelength_descr,
+            file_format="txt"
+        )
+
+        # TODO: Write header with information about the fit settings.
+        header = ""
+        data_handling.write_dict_to_txt(
+            d=self.relative_sed, file=file_name, path=save_sed_path,
+            header=header
+        )
+
+    def save_sed(self, save_sed_path: str = "../result_tables/"):
+
+        match self.bootstrap_selector:
+            case 1 | 2 | 3:
+                wavelength_descr = "all_waves"
+            case 4:
+                wavelength_descr = "for_single_waves"
+
+        file_name = plotting.get_table_file_name(
+            table_descr="SED",
+            fit_vis_or_vis2=self.fit_vis_or_vis2,
+            sample_descr=self.sample_descr,
+            fit_func_descr=self.fit_func_descr,
+            wavelength_descr=wavelength_descr,
+            file_format="txt"
+        )
+
+        # TODO: Write header with information about the fit settings.
+        header = ""
+        data_handling.write_dict_to_txt(
+            d=self.sed, file=file_name, path=save_sed_path,
+            header=header
+        )
+
     def sample_data_points(self):
 
         (data,

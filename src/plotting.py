@@ -455,6 +455,10 @@ def plot_vis_for_fixed_wavelengths(
 
             pdf.savefig(fig)
 
+def plot_dust_sed(dust_sed: tuple):
+    """"""
+    pass
+
 def get_short_param_str(param_descr: str) -> str:
     """
     Define a short str for visualization for a given fit parameter.
@@ -596,3 +600,32 @@ def get_vis_fig_name(
     )
 
     return fig_name
+
+def get_table_file_name(
+        table_descr: str, fit_vis_or_vis2: str, sample_descr: str,
+        fit_func_descr: str, wavelength_descr: str, file_format: str
+):
+    """
+    Returns the file name for a table for given fit parameter and settings.
+
+    Args:
+        table_descr: Descriptor of the table.
+        sample_descr: Descriptor of the chosen sampling during
+          bootstrapping, such as data points, baselines, observations or
+          data points per wavelength.
+        fit_func_descr: Descriptor of the chosen fit function.
+        wavelength_descr: Contains information about the wavelengths.
+          Typically either all wavelengths are fitted together or separately.
+        file_format: The file format.
+
+    Returns:
+        table_name: The file name of the table.
+    """
+
+    table_name = (
+        f"{"_".join([table_descr, fit_vis_or_vis2, sample_descr,
+                     fit_func_descr, wavelength_descr])}"
+        f".{file_format}"
+    )
+
+    return table_name
