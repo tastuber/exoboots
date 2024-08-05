@@ -593,6 +593,10 @@ def get_vis_fig_name(
         fig_name: The figure file name.
     """
 
+    # Remove the "VISAMP_" or "VIS2_" from fit_func_desc as it is present in
+    # fit_vis_or_vis2 anyway.
+    fit_func_descr = "_".join(fit_func_descr.split("_")[1:])
+
     fig_name = (
         f"{"_".join([fit_vis_or_vis2, sample_descr, fit_func_descr,
                      wavelength_descr])}"
@@ -621,6 +625,10 @@ def get_table_file_name(
     Returns:
         table_name: The file name of the table.
     """
+
+    # Remove the "VISAMP_" or "VIS2_" from fit_func_desc as it is present in
+    # fit_vis_or_vis2 anyway.
+    fit_func_descr = "_".join(fit_func_descr.split("_")[1:])
 
     table_name = (
         f"{"_".join([table_descr, fit_vis_or_vis2, sample_descr,
