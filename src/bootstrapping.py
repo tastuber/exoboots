@@ -37,7 +37,7 @@ class Bootstrapper():
             for i in range(self.N_wavelength)
         ]
 
-        self.default_save_fig_path = "../figures/"
+        self.default_save_fig_path = "../results/"
 
         # Set up random number generator.
         self.rng_seed = rng_seed
@@ -416,7 +416,7 @@ class Bootstrapper():
 
         return self.sed
 
-    def save_relative_sed(self, save_sed_path: str = "../result_tables/"):
+    def save_relative_sed(self, save_sed_path: str = "../results/"):
 
         file_name = plotting.get_table_file_name(
             table_descr="relative_SED",
@@ -434,7 +434,7 @@ class Bootstrapper():
             header=header
         )
 
-    def save_sed(self, save_sed_path: str = "../result_tables/"):
+    def save_dust_sed(self, save_sed_path: str = "../results/"):
 
         file_name = plotting.get_table_file_name(
             table_descr="SED",
