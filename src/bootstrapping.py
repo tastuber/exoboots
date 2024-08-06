@@ -418,8 +418,8 @@ class Bootstrapper():
 
     def save_relative_sed(self, save_sed_path: str = "../results/"):
 
-        file_name = plotting.get_table_file_name(
-            table_descr="relative_SED",
+        file_name = plotting.get_sed_file_name(
+            sed_descr="relative_SED",
             fit_vis_or_vis2=self.fit_vis_or_vis2,
             sample_descr=self.sample_descr,
             fit_func_descr=self.fit_func_descr,
@@ -436,8 +436,8 @@ class Bootstrapper():
 
     def save_dust_sed(self, save_sed_path: str = "../results/"):
 
-        file_name = plotting.get_table_file_name(
-            table_descr="SED",
+        file_name = plotting.get_sed_file_name(
+            sed_descr="SED",
             fit_vis_or_vis2=self.fit_vis_or_vis2,
             sample_descr=self.sample_descr,
             fit_func_descr=self.fit_func_descr,
