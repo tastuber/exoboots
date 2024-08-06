@@ -2,9 +2,6 @@
 #
 # filename: the filenames of the Oifits files to include in the analysis.
 #
-# minimum wavelength: the minimum wavelengths in the corresponding Oifits
-#   filename to be considered for analysis.
-#
 # minimum wavelength: the minimum wavelengths in micrometer of the
 #   corresponding Oifits file to be considered for analysis. In case the whole
 #   wavelength range shall be analyzed, choose a value smaller than the
