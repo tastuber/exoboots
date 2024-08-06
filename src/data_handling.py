@@ -48,27 +48,62 @@ def read_settings(settings_file: str) -> (list, list, list, list):
 
     return oifits_file_ls, wave_min_ls, wave_max_ls, exclude_baselines_ls_ls
 
-def mask_wavelengths(oifits_obj: oifits.oifits, wave_min: float,
-                     wave_max:float, fit_vis_or_vis2: str) -> oifits.oifits:
+def unflag_all_wavelengths(oifits_obj: oifits.oifits,
+                           fit_vis_or_vis2: str) -> oifits.oifits:
     """
-    Masks all measurements of wavelength outside the chosen range.
+    Unflag all measurements.
 
     Takes the oifits object and returns a modified copy of it. Modified are
-    only the masks of the masked arrays containing the data.
+    only the flags of the data. The oifits module creates the actual masked
+    arrays with data on the fly making use of the flag attribute.
+
+    Args:
+        oifits_obj: The oifits object as instance of oifits.oifits.
+        fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
+          treatment of visibilities (VISAMP) or squared visibilities (VIS2).
+
+    Returns:
+        oifits_obj: Modified copy of the input oifits with flagged data.
+    """
+
+    if fit_vis_or_vis2 == "VISAMP":
+
+        for vis in oifits_obj.vis:
+
+            vis.flag = vis.flag * False
+            vis.flag = vis.flag * False
+
+    elif fit_vis_or_vis2 == "VIS2":
+
+        for vis2 in oifits_obj.vis2:
+
+            vis2.flag = vis2.flag * False
+            vis2.flag = vis2.flag * False
+
+    return oifits_obj
+
+def flag_wavelengths(oifits_obj: oifits.oifits, wave_min: float,
+                     wave_max:float, fit_vis_or_vis2: str) -> oifits.oifits:
+    """
+    Masks all measurements outside the chosen wavelength range.
+
+    Takes the oifits object and returns a modified copy of it. Modified are
+    only the flags of the data. The oifits module creates the actual masked
+    arrays with data on the fly making use of the flag attribute.
 
     Args:
         oifits_obj: The oifits object as instance of oifits.oifits.
         wave_min: The minimum wavelength in units of meter to be considered in
           the analysis. All data corresponding to smaller wavelengths are
-          masked.
+          flagged.
         wave_max: The maximum wavelength in units of meter to be considered in
           the analysis. All data corresponding to larger wavelengths are
-          masked.
+          flagged.
         fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
           treatment of visibilities (VISAMP) or squared visibilities (VIS2).
 
     Returns:
-        oifits_obj: Modified copy of the input oifits with masked data.
+        oifits_obj: Modified copy of the input oifits with flagged data.
     """
 
     if fit_vis_or_vis2 == "VISAMP":
@@ -91,7 +126,7 @@ def mask_wavelengths(oifits_obj: oifits.oifits, wave_min: float,
 
     return oifits_obj
 
-# TO DO:
+# TODO:
 # Write function mask_baselines()
 
 def write_dict_to_txt(
@@ -262,7 +297,8 @@ class Full_data_set():
     def __init__(
         self, oifits_file_ls: list[str], wave_min_ls: list[float],
         wave_max_ls: list[float], exclude_baselines_ls_ls: list[list[str]],
-        path_to_data: str, fit_vis_or_vis2: str, weight_mode: str
+        path_to_data: str, fit_vis_or_vis2: str, weight_mode: str,
+        unflag_all: bool = False
     ):
         """
         Read input, select wavelength and baseline and create a Full_data_set.
@@ -284,6 +320,10 @@ class Full_data_set():
                 the baselines 'A0J3' and 'A4K2' in the second file and 'J3G2'
                 in the third file. Then set
                 exclude_baseline_ls = [[], [A0J3, A4K2], [J3G2]]
+            unflag_all: Unflag all data before flagging them to select
+              wavelengths and/or baselines. Some Oifits files have completely
+              flagged data for unknown reasons. Set to True to deal with that.
+              Default: False.
 
         Raises:
             NoDataError: The chosen data, visibility or squared visibility, is
@@ -308,12 +348,19 @@ class Full_data_set():
                 if len(oifits_obj.vis2) == 0:
                     raise exceptions.NoDataError(oifits_file, fit_vis_or_vis2)
 
+            # Unflag (=unmask) all values.
+            if unflag_all:
+
+                oifits_obj = unflag_all_wavelengths(
+                    oifits_obj, fit_vis_or_vis2
+                )
+
             # Mask wavelengths
-            oifits_obj = mask_wavelengths(
+            oifits_obj = flag_wavelengths(
                 oifits_obj, wave_min, wave_max, fit_vis_or_vis2
             )
 
-            # TO DO:
+            # TODO:
             # Mask baselines using exclude_baselines_ls
 
             # Loop trough the different data sets of the baselines Oifits file.
@@ -509,7 +556,6 @@ class Full_data_set():
 
         return Data_per_wavelength_ls
 
-
 class Full_data_set_from_list(Full_data_set):
     """
     Full_data_set created by providing list of All_Baselines_per_File objects.
@@ -519,7 +565,6 @@ class Full_data_set_from_list(Full_data_set):
 
 
         self.file_data_set_ls = file_data_set_ls
-
 
 class Data_per_wavelength():
     """
