@@ -96,8 +96,7 @@ def plot_histogram(
         bins: Number of histogram bins. The default is bins = 20.
         save_fig: Decides whether the figure is saved. True saves the figure,
           False does not.
-        save_fig_path: Path where to save the figure. The default is
-          "../figures/".
+        save_fig_path: Path where to save the figure.
     """
 
     fig, ax = plt.subplots(figsize=figsize)
