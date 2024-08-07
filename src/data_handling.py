@@ -3,6 +3,7 @@ import oifits
 import numpy as np
 
 import exceptions
+import plotting
 
 def read_settings(settings_file: str) -> (list, list, list, list):
     """
@@ -142,7 +143,16 @@ def write_dict_to_txt(
 
         # Write column headers.
         for key in d:
-            f.write(f"{key:<34}")
+
+            # Get key unit.
+            if key[1:6] == "Delta":
+                unit_str = plotting.get_var_unit_str(var_descr=key[7:])
+            else:
+                unit_str = plotting.get_var_unit_str(var_descr=key)
+            if unit_str != "":
+                unit_str = f" /{unit_str}"
+
+            f.write(f"{key+unit_str:<34}")
             if type(d[key]) == np.float64:
                 len_col = 1
             else:

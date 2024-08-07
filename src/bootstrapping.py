@@ -216,8 +216,8 @@ class Bootstrapper():
 
         # Store final results in dictionary.
         # If the parameter is the relative flux of the dust ('f'), write
-        # this in an additional dictionary array 'relative_sed' for easy
-        # plotting and saving.
+        # this in an additional dictionary 'relative_sed' for easy plotting and
+        # saving.
         self.results = {}
         relative_sed = np.zeros(4)
         mean_wavelength = np.mean(self.wavelength_ls)
@@ -313,10 +313,8 @@ class Bootstrapper():
                 - param_results_median[i_wave]
             )
 
-            # Store final results in dictionary.
             # If the parameter is the relative flux of the dust ('f'), write
-            # this in an additional dictionary array 'relative_sed' for easy
-            # plotting and saving.
+            # this in a dictionary 'relative_sed' for easy plotting and saving.
             wavelength_str = (
                 f"{wavelength*1e6:.4f} micron"
             )
@@ -324,21 +322,12 @@ class Bootstrapper():
                 self.varied_param_ls
             ):
 
-                param_median = param_results_median[i_wave, i_varied_param]
+                param_median = param_results_median[i_wave,
+                                                    i_varied_param]
                 param_error_plus = param_results_error_plus[i_wave,
                                                             i_varied_param]
                 param_error_minus = param_results_error_minus[i_wave,
                                                               i_varied_param]
-
-                self.results[f"{wavelength_str}, {varied_param}"] = (
-                    param_median
-                )
-                self.results[f"{wavelength_str}, +Delta {varied_param}"] = (
-                    param_error_plus
-                )
-                self.results[f"{wavelength_str}, -Delta {varied_param}"] = (
-                    param_error_minus
-                )
 
                 if varied_param == "f":
 
@@ -355,6 +344,22 @@ class Bootstrapper():
                     "+Delta dust to star flux ratio": relative_sed[2],
                     "-Delta dust to star flux ratio": relative_sed[3]
                 }
+
+        # Store final results in dictionary.
+        self.results["wavelength"] = self.wavelength_ls
+        for i_varied_param, varied_param in enumerate(
+                self.varied_param_ls
+            ):
+
+                self.results[varied_param] = (
+                    param_results_median[:, i_varied_param]
+                )
+                self.results[f"+Delta {varied_param}"] = (
+                    param_results_error_plus[:, i_varied_param]
+                )
+                self.results[f"-Delta {varied_param}"] = (
+                    param_results_error_minus[:, i_varied_param]
+                )
 
     def compute_dust_sed(
             self, T_star: float, R_star: float, dist_star: float

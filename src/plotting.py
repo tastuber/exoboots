@@ -105,7 +105,7 @@ def plot_histogram(
     # Obtain various strings for title, axes labels, and legend.
     short_param_str = get_short_param_str(param_descr)
     long_param_str = get_long_param_str(param_descr)
-    param_unit_str = get_param_unit_str(param_descr)
+    param_unit_str = get_var_unit_str(param_descr)
 
     # Compute the bootstrap statistics: the median, the 0.16 quantile, and the
     # 0.84 quantile. The median is the best-fit parameter, the difference from
@@ -237,7 +237,7 @@ def plot_vis_all_wavelengths(
             title_varied_param_str.append(
                 f"{get_short_param_str(param)} ="
                 f" {fitted_param[param]:.2}"
-                f" {get_param_unit_str(param)}"
+                f" {get_var_unit_str(param)}"
             )
         title_varied_param_str = ", ".join(title_varied_param_str)
 
@@ -248,7 +248,7 @@ def plot_vis_all_wavelengths(
             title_fixed_param_str.append(
                 f"{get_short_param_str(param)} ="
                 f" {bs.fixed_param[param]}"
-                f" {get_param_unit_str(param)}"
+                f" {get_var_unit_str(param)}"
             )
         title_fixed_param_str = ", ".join(title_fixed_param_str)
 
@@ -274,7 +274,7 @@ def plot_vis_all_wavelengths(
                 title_init_param_str.append(
                     f"{get_short_param_str(param)} = "
                     f"{bs.param_init_value_ls[i_param]} "
-                    f"{get_param_unit_str(param)}"
+                    f"{get_var_unit_str(param)}"
                 )
             title_init_param_str = ", ".join(title_init_param_str)
 
@@ -367,7 +367,7 @@ def plot_vis_for_fixed_wavelengths(
             # This is executed if the bootstrapping has been performed.
             try:
                 fitted_param = {
-                    param: bs.results[f"{wavelength_str}, {param}"] \
+                    param: bs.results[param][i_wave] \
                     for param in bs.varied_param_ls
                 }
                 func_data = bs.fit_func(
@@ -383,7 +383,7 @@ def plot_vis_for_fixed_wavelengths(
                     title_varied_param_str.append(
                         f"{get_short_param_str(param)} ="
                         f" {fitted_param[param]:.2}"
-                        f" {get_param_unit_str(param)}"
+                        f" {get_var_unit_str(param)}"
                     )
                 title_varied_param_str = ", ".join(title_varied_param_str)
 
@@ -394,7 +394,7 @@ def plot_vis_for_fixed_wavelengths(
                     title_fixed_param_str.append(
                         f"{get_short_param_str(param)} ="
                         f" {bs.fixed_param[param]}"
-                        f" {get_param_unit_str(param)}"
+                        f" {get_var_unit_str(param)}"
                     )
                 title_fixed_param_str = ", ".join(title_fixed_param_str)
 
@@ -421,7 +421,7 @@ def plot_vis_for_fixed_wavelengths(
                         title_init_param_str.append(
                             f"{get_short_param_str(param)} = "
                             f"{bs.param_init_value_ls[i_param]} "
-                            f"{get_param_unit_str(param)}"
+                            f"{get_var_unit_str(param)}"
                         )
                     title_init_param_str = ", ".join(title_init_param_str)
 
@@ -624,25 +624,29 @@ def get_long_param_str(param_descr: str) -> str:
 
     return long_param_str
 
-def get_param_unit_str(param_descr: str) -> str:
+def get_var_unit_str(var_descr: str) -> str:
     """
-    Define the unit str for a given fit parameter.
+    Return unit str for a given variable like wavelength or a fit parameter.
 
     Args:
-        param_descr: The string representation of the fit parameter.
+        var_descr: The string representation of the fit parameter.
 
     Returns:
         unit_str: The string to be used for the parameter unit.
     """
 
-    if param_descr == "f":
+    if var_descr == "wavelength":
+        unit_str = "m"
+    elif var_descr == "f":
         unit_str = ""
-    elif param_descr == "stellar_diameter":
+    elif var_descr == "stellar_diameter":
         unit_str = "mas"
-    elif param_descr == "lin_limb_dark_param":
+    elif var_descr == "lin_limb_dark_param":
         unit_str = ""
-    elif param_descr == "FOV":
+    elif var_descr == "FOV":
         unit_str = "mas"
+    else:
+        unit_str = ""
 
     return unit_str
 
@@ -657,7 +661,7 @@ def get_hist_xlabel(param_descr: str):
         x_label: The string to be used as x-axis label.
     """
 
-    param_unit_str = get_param_unit_str(param_descr)
+    param_unit_str = get_var_unit_str(param_descr)
     x_label = (
         f"{get_long_param_str(param_descr)}"
         + f"{" /" if param_unit_str!="" else ""}"
