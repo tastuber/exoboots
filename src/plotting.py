@@ -480,7 +480,7 @@ def plot_relative_sed(
                     bs.relative_sed["-Delta dust to star flux ratio"])
 
         ax.errorbar(
-            x=bs.relative_sed["wavelength [m]"],
+            x=bs.relative_sed["wavelength /m"],
             y=bs.relative_sed["dust to star flux ratio"],
             yerr=yerr,
             marker="x"
@@ -490,14 +490,13 @@ def plot_relative_sed(
 
         # Plot single data point. Otherwise in the special case on only one
         # data point and not to be plotted errorbars, nothing is displayed.
-        #if type(bs.sed["dust flux [Jy]"]) == np.float64:
-        if type(bs.relative_sed["wavelength [m]"]) == np.float64:
+        if type(bs.relative_sed["wavelength /m"]) == np.float64:
             marker = "x"
         else:
             marker = None
 
         ax.plot(
-             bs.relative_sed["wavelength [m]"],
+             bs.relative_sed["wavelength /m"],
              bs.relative_sed["dust to star flux ratio"],
              marker=marker
         )
@@ -534,18 +533,18 @@ def plot_dust_sed(
 
         # Specific format for plt.errorbar to work with one and multiple data
         # points at the same time.
-        if type(bs.sed["dust flux [Jy]"]) == np.float64:
+        if type(bs.sed["dust flux /Jy"]) == np.float64:
             yerr = [
-                [bs.sed["+Delta dust flux [Jy]"]],
-                [bs.sed["-Delta dust flux [Jy]"]]
+                [bs.sed["+Delta dust flux /Jy"]],
+                [bs.sed["-Delta dust flux /Jy"]]
             ]
         else:
-            yerr = (bs.sed["+Delta dust flux [Jy]"],
-                    bs.sed["-Delta dust flux [Jy]"])
+            yerr = (bs.sed["+Delta dust flux /Jy"],
+                    bs.sed["-Delta dust flux /Jy"])
 
         ax.errorbar(
-            x=bs.sed["wavelength [m]"],
-            y=bs.sed["dust flux [Jy]"],
+            x=bs.sed["wavelength /m"],
+            y=bs.sed["dust flux /Jy"],
             yerr=yerr,
             marker="x"
         )
@@ -554,14 +553,13 @@ def plot_dust_sed(
 
         # Plot single data point. Otherwise in the special case on only one
         # data point and not to be plotted errorbars, nothing is displayed.
-        #if type(bs.sed["dust flux [Jy]"]) == np.float64:
-        if type(bs.sed["wavelength [m]"]) == np.float64:
+        if type(bs.sed["wavelength /m"]) == np.float64:
             marker = "x"
         else:
             marker = None
 
         ax.plot(
-            bs.sed["wavelength [m]"], bs.sed["dust flux [Jy]"], marker=marker
+            bs.sed["wavelength /m"], bs.sed["dust flux /Jy"], marker=marker
         )
 
     ax.set_title(title, loc="right")

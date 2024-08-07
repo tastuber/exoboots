@@ -241,7 +241,7 @@ class Bootstrapper():
         if np.any(relative_sed):
 
             self.relative_sed = {
-                "wavelength [m]": relative_sed[0],
+                "wavelength /m": relative_sed[0],
                 "dust to star flux ratio": relative_sed[1],
                 "+Delta dust to star flux ratio": relative_sed[2],
                 "-Delta dust to star flux ratio": relative_sed[3]
@@ -339,7 +339,7 @@ class Bootstrapper():
             if np.any(relative_sed):
 
                 self.relative_sed = {
-                    "wavelength [m]": relative_sed[0],
+                    "wavelength /m": relative_sed[0],
                     "dust to star flux ratio": relative_sed[1],
                     "+Delta dust to star flux ratio": relative_sed[2],
                     "-Delta dust to star flux ratio": relative_sed[3]
@@ -381,7 +381,7 @@ class Bootstrapper():
         T_star = T_star * u.K
         R_star = R_star * u.Rsun
         dist_star = dist_star * u.parsec
-        wavelength = self.relative_sed["wavelength [m]"] * u.m
+        wavelength = self.relative_sed["wavelength /m"] * u.m
 
         hd1 = (2.0*c.h*c.c**2) / wavelength**5
         hd2 = ((c.h*c.c) / (c.k_B*T_star*wavelength)).decompose()
@@ -412,11 +412,11 @@ class Bootstrapper():
         )
 
         self.sed = {
-            "wavelength [m]": wavelength.value,
-            "dust flux [Jy]": sed.value,
-            "+Delta dust flux [Jy]": sed_error_plus.value,
-            "-Delta dust flux [Jy]": sed_error_minus.value,
-            "star flux [Jy]": F_star.value
+            "wavelength /m": wavelength.value,
+            "dust flux /Jy": sed.value,
+            "+Delta dust flux /Jy": sed_error_plus.value,
+            "-Delta dust flux /Jy": sed_error_minus.value,
+            "star flux /Jy": F_star.value
         }
 
         return self.sed
