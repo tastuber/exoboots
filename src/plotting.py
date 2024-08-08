@@ -221,9 +221,12 @@ def plot_vis_all_wavelengths(
 
     # This is executed if the bootstrapping has been performed.
     try:
+        # Make dict containing only the varied params and its result to feed
+        # the fit function.
         fitted_param = {
-            key: bs.results[key] for key in bs.varied_param_ls
+            param: bs.results[param] for param in bs.varied_param_ls
         }
+        # Obtain data for the best fit model.
         func_data = bs.fit_func(
             spatial_frequency_func, **bs.fixed_param, **fitted_param
         )
@@ -235,9 +238,11 @@ def plot_vis_all_wavelengths(
         for param in bs.varied_param_ls:
 
             title_varied_param_str.append(
-                f"{get_short_param_str(param)} ="
-                f" {fitted_param[param]:.2}"
-                f" {get_var_unit_str(param)}"
+                f"{get_short_param_str(param)} = ("
+                f"{bs.results[param]:.2}"
+                f" + {bs.results[f"+Delta {param}"]:.2}"
+                f" - {bs.results[f"-Delta {param}"]:.2}"
+                f") {get_var_unit_str(param)}".rstrip()
             )
         title_varied_param_str = ", ".join(title_varied_param_str)
 
@@ -366,10 +371,13 @@ def plot_vis_for_fixed_wavelengths(
 
             # This is executed if the bootstrapping has been performed.
             try:
+                # Make dict containing only the varied params and its result to
+                # feed the fit function.
                 fitted_param = {
                     param: bs.results[param][i_wave] \
                     for param in bs.varied_param_ls
                 }
+                # Obtain data for the best fit model.
                 func_data = bs.fit_func(
                     spatial_frequency_func, **bs.fixed_param, **fitted_param
                 )
@@ -381,9 +389,11 @@ def plot_vis_for_fixed_wavelengths(
                 for param in bs.varied_param_ls:
 
                     title_varied_param_str.append(
-                        f"{get_short_param_str(param)} ="
-                        f" {fitted_param[param]:.2}"
-                        f" {get_var_unit_str(param)}"
+                        f"{get_short_param_str(param)} = ("
+                        f"{bs.results[param][i_wave]:.2}"
+                        f" + {bs.results[f"+Delta {param}"][i_wave]:.2}"
+                        f" - {bs.results[f"-Delta {param}"][i_wave]:.2}"
+                        f") {get_var_unit_str(param)}".rstrip()
                     )
                 title_varied_param_str = ", ".join(title_varied_param_str)
 
