@@ -1,6 +1,7 @@
 import oifits
 
 import numpy as np
+from scipy.stats import binned_statistic
 
 import exceptions
 import plotting
@@ -218,17 +219,20 @@ class Baseline():
         self.wavelength = wavelength
         self.ucoord = ucoord
         self.vcoord = vcoord
+        self.weight_mode = weight_mode
 
         # Compute projected baseline length from u-v-coordinates.
         self.B = np.sqrt(ucoord**2 + vcoord**2)
 
-        # Compute spatial frequencies.
+        self.compute_spatial_frequency()
+
+        self.set_weight()
+
+    def compute_spatial_frequency(self):
+
         self.spatial_frequency = self.B / self.wavelength
 
-        # Set standard weights.
-        self.set_weight(mode=weight_mode)
-
-    def set_weight(self, mode: str):
+    def set_weight(self):
         """
         Set the weights for each data point that can be used for fitting.
 
@@ -249,30 +253,26 @@ class Baseline():
             of the same instrument but with different spectral dispersions.
           "both": Both 'error' and 'points per baseline' weights combined via
             multiplication.
-
-        Args:
-          mode: String defining the type of weights. Choose from 'no weights',
-            'error', 'points per baseline', or 'both'.
         """
 
         num_data_points = len(self.wavelength)
         weight_error = 1.0 / self.data_error**2
 
-        if mode == "no weights":
+        if self.weight_mode == "no weights":
 
             self.weight = np.array([1.0 for i in range(num_data_points)])
 
-        elif mode == "error":
+        elif self.weight_mode == "error":
 
             self.weight = weight_error
 
-        elif mode == "points per baseline":
+        elif self.weight_mode == "points per baseline":
 
             self.weight = np.array(
                 [1.0/num_data_points for i in range(num_data_points)]
             )
 
-        elif mode == "both":
+        elif self.weight_mode == "both":
 
             weight_per_baseline = 1.0 / num_data_points
             self.weight = weight_per_baseline * weight_error
@@ -314,7 +314,6 @@ class Full_data_set():
         Read input, select wavelength and baseline and create a Full_data_set.
 
         Args:
-            path_to_data: System path to where the Oifits files are.
             oifits_file_ls: List of the Oifits files to be loaded.
             wave_min_ls: List of the smallest wavelengths considered per file
               listed in oifits_file_ls. Thereby it is possible to select
@@ -330,10 +329,27 @@ class Full_data_set():
                 the baselines 'A0J3' and 'A4K2' in the second file and 'J3G2'
                 in the third file. Then set
                 exclude_baseline_ls = [[], [A0J3, A4K2], [J3G2]]
-            unflag_all: Unflag all data before flagging them to select
-              wavelengths and/or baselines. Some Oifits files have completely
-              flagged data for unknown reasons. Set to True to deal with that.
-              Default: False.
+            path_to_data: System path to where the Oifits files are.
+            fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
+              treatment of visibilities (VISAMP) or squared visibilities
+              (VIS2).
+            weight_mode: String defining the type of weights. Choose from
+              'no weights', 'error', 'points per baseline', or 'both'.
+
+              Options explained:
+              "no weights": All weights are the same and equal to one.
+              "error": The errors of the data define the weights as 1/error^2.
+              "points per baseline": The weight is set as the inverse of the
+                number of data points per baseline. This is motivated by the
+                fact that for optical interferometry usually the different
+                spectral data points of one baseline are highly correlated.
+                Thus, it is reasonably to assume that only the entirety of data
+                points per baseline give one independent data point. This has
+                to be considered if data with different numbers of data points
+                per baseline are analyzed jointly, e.g., when combining
+                observations of multiple instruments or of the same instrument
+                but with different spectral dispersions. "both": Both 'error'
+                and 'points per baseline' weights combined via multiplication.
 
         Raises:
             NoDataError: The chosen data, visibility or squared visibility, is
@@ -365,7 +381,7 @@ class Full_data_set():
                     oifits_obj, fit_vis_or_vis2
                 )
 
-            # Mask wavelengths
+            # Flag wavelengths
             oifits_obj = flag_wavelengths(
                 oifits_obj, wave_min, wave_max, fit_vis_or_vis2
             )
@@ -442,6 +458,128 @@ class Full_data_set():
             )
 
         self.file_data_set_ls = file_data_set_ls
+
+    def bin_wavelengths(
+        self, bins: int | list[int],
+        wave_bins_range: tuple[float, float] | list[tuple[float, float]] | None = None
+     ):
+        """
+        Bin data according to wavelengths using the mean.
+
+        If bins is an integer, the same number of bins are used for every
+        data set. If bins is a list, the respective number of bins are used
+        for the individual input files. In this case, the length of bins has to
+        match the number of input files.
+
+        If wave_bins_range is not provided, the number of bins are spread
+        between [min(wavelength), max(wavelength)]. This minimum/maximum
+        wavelength are computed from all files if bins is an integer and for
+        each file individually if bins is a list.
+        With wave_range provided, this defines the wavelength range. Either
+        for all files together if wave_bins_range is a tuple or for each file
+        individually if it is a list of tuples. In that case the list length
+        has to match the number of input files.
+        In case some wavelength bins lie outside the wavelength range of the
+        data, those empty bins will not be saved.
+
+        Args:
+            bins: Can be integer giving the number bins to apply for all input
+              files. Or list of integer giving the number of bins individually
+              for each input file.
+            wave_range: Optional, can be tuple of the form (wave_min, wave_max)
+              that defines the wavelengths between the bins are spread. Or can
+              be list of tuples of the described form.
+        """
+
+        N_file_data_set = len(self.file_data_set_ls)
+
+        # Check input and generalize to lists.
+        if type(bins) == int:
+            bins = [bins for i in range(N_file_data_set)]
+        elif type(bins) == list:
+            if len(bins) != N_file_data_set:
+                raise ValueError(
+                    "Length of bins has to match number of input files.\n"
+                    f"  Length of bins: {len(bins)}\n"
+                    f"  Number of files: {N_file_data_set}\n"
+                    "Alternatively, input bins as integer to use this number "
+                    "for all files."
+                )
+                bins_ls = bins
+
+        if wave_bins_range is None:
+            wave_bins_range = [
+                None for i in range(N_file_data_set)
+            ]
+        elif type(wave_bins_range) == tuple:
+            wave_bins_range = [
+                wave_bins_range
+                for i in range(N_file_data_set)
+            ]
+        elif type(wave_bins_range) == list:
+            if len(wave_bins_range) != N_file_data_set:
+                raise ValueError(
+                    "Length of wave_bins_range has to match number of input "
+                    "files.\n"
+                    f"  Length of wave_bins_range: {len(wave_bins_range)}\n"
+                    f"  Number of files: {N_file_data_set}\n"
+                    "Alternatively, input wave_bins_range as tuple to use this"
+                    "number for all files."
+                )
+
+        for file_data_set, bins_data_set, wave_bins_range_data_set in zip(
+            self.file_data_set_ls, bins, wave_bins_range
+        ):
+
+            for baseline in file_data_set.baseline_ls:
+
+                # The np.flip is required to sort according to decreasing
+                # wavelengths as the binned_statistics returns increasing
+                # wavelengths.
+                # NaNs result from empty bins. This happens if either to many
+                # bins are selected and are thus finer than the data or the
+                # wavelength range of the bins is larger than that of the data.
+
+                data_binned = binned_statistic(
+                    x=baseline.wavelength,
+                    values=baseline.data,
+                    bins=bins_data_set,
+                    statistic="mean",
+                    range=wave_bins_range_data_set
+                ).statistic
+
+                data_error_binned = binned_statistic(
+                    x=baseline.wavelength,
+                    values=baseline.data_error,
+                    bins=bins_data_set,
+                    statistic="mean",
+                    range=wave_bins_range_data_set
+                ).statistic
+
+                # Wavelengths have to be binned last, as binning is done based
+                # on them.
+
+                wavelength_binned = binned_statistic(
+                    x=baseline.wavelength,
+                    values=baseline.wavelength,
+                    bins=bins_data_set,
+                    statistic="mean",
+                    range=wave_bins_range_data_set
+                ).statistic
+
+                baseline.data = np.flip(
+                    data_binned[~np.isnan(data_binned)]
+                )
+                baseline.data_error = np.flip(
+                    data_error_binned[~np.isnan(data_error_binned)]
+                )
+                baseline.wavelength = np.flip(
+                    wavelength_binned[~np.isnan(wavelength_binned)]
+                )
+
+                # Recompute spatial frequencies and weights.
+                baseline.compute_spatial_frequency()
+                baseline.set_weight()
 
     def get_all_data_flattened(self) -> tuple:
         """
