@@ -138,7 +138,7 @@ def write_dict_to_txt(
     with open(path+file, "w") as f:
 
         # Write header for the file.
-        if header:
+        if header is not None:
             f.write("# "+header.replace("\n", "\n# ")+"\n\n")
 
         # Write column headers.
@@ -205,7 +205,7 @@ class Baseline():
     ):
 
         # Check whether all input data arrays are of the same length.
-        if not len(set([len(data), len(data_error), len(wavelength)])) == 1:
+        if len(set([len(data), len(data_error), len(wavelength)])) != 1:
             raise ValueError(
                 "In construction of Baseline object, the array length of "
                 "data, data error, and wavelength do not match."

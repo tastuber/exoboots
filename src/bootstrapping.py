@@ -527,7 +527,7 @@ class Bootstrapper():
             sample: The resampled input.
         """
 
-        if not sample_size:
+        if sample_size is None:
             sample_size = len(data)
 
         indices = self.rng.integers(
@@ -562,7 +562,7 @@ class Bootstrapper():
                     f"for tupel item {i}."
                 )
 
-        if not sample_size:
+        if sample_size is None:
             sample_size = data_len
 
         indices = self.rng.integers(0, high=data_len-1, size=sample_size,
