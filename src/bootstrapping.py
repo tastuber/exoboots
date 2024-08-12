@@ -433,7 +433,7 @@ class Bootstrapper():
         )
 
         # TODO: Write header with information about the fit settings.
-        header = ""
+        header = None
         data_handling.write_dict_to_txt(
             d=self.relative_sed, file=file_name, path=save_sed_path,
             header=header
@@ -451,7 +451,7 @@ class Bootstrapper():
         )
 
         # TODO: Write header with information about the fit settings.
-        header = ""
+        header = None
         data_handling.write_dict_to_txt(
             d=self.sed, file=file_name, path=save_sed_path,
             header=header
