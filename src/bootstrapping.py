@@ -30,12 +30,6 @@ class Bootstrapper():
         self.bootstrap_selector = bootstrap_selector
         self.fit_vis_or_vis2 = fit_vis_or_vis2
         self.full_data_set = full_data_set
-        self.data_per_wavelength = self.full_data_set.get_data_per_wavelength()
-        self.N_wavelength = len(self.data_per_wavelength)
-        self.wavelength_ls = [
-            self.data_per_wavelength[i].wavelength
-            for i in range(self.N_wavelength)
-        ]
 
         self.default_save_fig_path = "../results/"
 
@@ -89,6 +83,14 @@ class Bootstrapper():
             case 4:
                 # Fit for selected wavelengths the data points, i.e., sample
                 # for given wavelengths the baselines.
+                self.data_per_wavelength = (
+                    self.full_data_set.get_data_per_wavelength()
+                )
+                self.N_wavelength = len(self.data_per_wavelength)
+                self.wavelength_ls = [
+                    self.data_per_wavelength[i].wavelength
+                    for i in range(self.N_wavelength)
+                ]
                 self.sample_descr = (
                     "sampled_baselines_for_fixed_wavelength"
                 )
@@ -220,7 +222,9 @@ class Bootstrapper():
         # saving.
         self.results = {}
         relative_sed = np.zeros(4)
-        mean_wavelength = np.mean(self.wavelength_ls)
+        _, _, tmp_wave, _, _ = self.full_data_set.get_all_data_flattened()
+        mean_wavelength = np.mean(tmp_wave)
+
         for i_varied_param, varied_param in enumerate(self.varied_param_ls):
 
             param_median = param_results_median[i_varied_param]
