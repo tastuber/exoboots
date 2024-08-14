@@ -22,16 +22,40 @@ class Bootstrapper():
         self, N_sample: int, model_selector: int, bootstrap_selector: int,
         fit_vis_or_vis2: str,
         full_data_set: "Full_data_set",
+        weight_mode: str,
         rng_seed: int
     ):
+        """
+        Args:
+            weight_mode: Defines how weights are computed. Options are
+              "no weights", "error", "points per baseline", or "both".
+
+              Options explained:
+              "no weights": All weights are the same and equal to one.
+              "error": The errors of the data define the weights as 1/error^2.
+              "points per baseline": The weight is set as the inverse of the
+                number of data points per baseline. This is motivated by the
+                fact that for optical interferometry usually the different
+                spectral data points of one baseline are highly correlated.
+                Thus, it is reasonably to assume that only the entirety of data
+                points per baseline give one independent data point. This has
+                to be considered if data with different numbers of data points
+                per baseline are analyzed jointly, e.g., when combining
+                observations of multiple instruments or of the same instrument
+                but with different spectral dispersions. "both": Both "error"
+                and "points per baseline" weights combined via multiplication.
+        """
 
         self.N_sample = N_sample
         self.model_selector = model_selector
         self.bootstrap_selector = bootstrap_selector
         self.fit_vis_or_vis2 = fit_vis_or_vis2
+        self.weight_mode = weight_mode
         self.full_data_set = full_data_set
+        self.full_data_set.set_weight(weight_mode=self.weight_mode)
 
         self.default_save_fig_path = "../results/"
+
 
         # Set up random number generator.
         self.rng_seed = rng_seed

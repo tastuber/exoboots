@@ -202,7 +202,6 @@ class Baseline():
         wavelength: np.array,
         ucoord: float,
         vcoord: float,
-        weight_mode: str="no weights",
     ):
 
         # Check whether all input data arrays are of the same length.
@@ -219,60 +218,59 @@ class Baseline():
         self.wavelength = wavelength
         self.ucoord = ucoord
         self.vcoord = vcoord
-        self.weight_mode = weight_mode
 
         # Compute projected baseline length from u-v-coordinates.
         self.B = np.sqrt(ucoord**2 + vcoord**2)
 
         self.compute_spatial_frequency()
 
-        self.set_weight()
-
     def compute_spatial_frequency(self):
 
         self.spatial_frequency = self.B / self.wavelength
 
-    def set_weight(self):
+    def set_weight(self, weight_mode: str):
         """
         Set the weights for each data point that can be used for fitting.
 
         Different types of weights of the data can be chosen that can be used
         in least-squares fitting.
-        The options are:
-          "no weights": All weights are the same and equal to one.
-          "error": The errors of the data define the weights as
-            1/error^2.
-          "points per baseline": The weight is set as the inverse of the number
-            of data points per baseline. This is motivated by the fact that for
-            optical interferometry usually the different spectral data points
-            of one baseline are highly correlated. Thus, it is reasonably to
-            assume that only the entirety of data points per baseline give one
-            independent data point. This has to be considered if data with
-            different numbers of data points per baseline are analyzed jointly,
-            e.g., when combining observations of multiple instruments or
-            of the same instrument but with different spectral dispersions.
-          "both": Both 'error' and 'points per baseline' weights combined via
-            multiplication.
+
+        Args:
+            weight_mode: Defines how weights are computed. The options are:
+              "no weights": All weights are the same and equal to one.
+              "error": The errors of the data define the weights as 1/error^2.
+              "points per baseline": The weight is set as the inverse of the
+                number of data points per baseline. This is motivated by the
+                fact that for optical interferometry usually the different
+                spectral data points of one baseline are highly correlated.
+                Thus, it is reasonably to assume that only the entirety of data
+                points per baseline give one independent data point. This has
+                to be considered if data with different numbers of data points
+                per baseline are analyzed jointly, e.g., when combining
+                observations of multiple instruments or of the same instrument
+                but with different spectral dispersions.
+              "both": Both "error" and "points per baseline" weights combined
+                via multiplication.
         """
 
         num_data_points = len(self.wavelength)
         weight_error = 1.0 / self.data_error**2
 
-        if self.weight_mode == "no weights":
+        if weight_mode == "no weights":
 
             self.weight = np.array([1.0 for i in range(num_data_points)])
 
-        elif self.weight_mode == "error":
+        elif weight_mode == "error":
 
             self.weight = weight_error
 
-        elif self.weight_mode == "points per baseline":
+        elif weight_mode == "points per baseline":
 
             self.weight = np.array(
                 [1.0/num_data_points for i in range(num_data_points)]
             )
 
-        elif self.weight_mode == "both":
+        elif weight_mode == "both":
 
             weight_per_baseline = 1.0 / num_data_points
             self.weight = weight_per_baseline * weight_error
@@ -307,7 +305,7 @@ class Full_data_set():
     def __init__(
         self, oifits_file_ls: list[str], wave_min_ls: list[float],
         wave_max_ls: list[float], exclude_baselines_ls_ls: list[list[str]],
-        path_to_data: str, fit_vis_or_vis2: str, weight_mode: str,
+        path_to_data: str, fit_vis_or_vis2: str,
         unflag_all: bool = False
     ):
         """
@@ -333,23 +331,6 @@ class Full_data_set():
             fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
               treatment of visibilities (VISAMP) or squared visibilities
               (VIS2).
-            weight_mode: String defining the type of weights. Choose from
-              'no weights', 'error', 'points per baseline', or 'both'.
-
-              Options explained:
-              "no weights": All weights are the same and equal to one.
-              "error": The errors of the data define the weights as 1/error^2.
-              "points per baseline": The weight is set as the inverse of the
-                number of data points per baseline. This is motivated by the
-                fact that for optical interferometry usually the different
-                spectral data points of one baseline are highly correlated.
-                Thus, it is reasonably to assume that only the entirety of data
-                points per baseline give one independent data point. This has
-                to be considered if data with different numbers of data points
-                per baseline are analyzed jointly, e.g., when combining
-                observations of multiple instruments or of the same instrument
-                but with different spectral dispersions. "both": Both 'error'
-                and 'points per baseline' weights combined via multiplication.
 
         Raises:
             NoDataError: The chosen data, visibility or squared visibility, is
@@ -448,7 +429,6 @@ class Full_data_set():
                     wavelength=wavelength,
                     ucoord=ucoord,
                     vcoord=vcoord,
-                    weight_mode=weight_mode
                 )
                 baseline_ls.append(baseline)
 
@@ -458,6 +438,22 @@ class Full_data_set():
             )
 
         self.file_data_set_ls = file_data_set_ls
+
+    def set_weight(self, weight_mode: str):
+        """
+        Set the fit weights for all baselines.
+
+        Options are: "no weights", "error", "points per baseline", or "both".
+        See for more information Baseline.set_weight().
+        """
+
+        # Cycle through all Baselines.
+        for file_data_set in self.file_data_set_ls:
+
+            for baseline in file_data_set.baseline_ls:
+
+                baseline.set_weight(weight_mode=weight_mode)
+
 
     def bin_wavelengths(
         self, bins: int | list[int],
@@ -577,9 +573,8 @@ class Full_data_set():
                     wavelength_binned[~np.isnan(wavelength_binned)]
                 )
 
-                # Recompute spatial frequencies and weights.
+                # Recompute spatial frequencies.
                 baseline.compute_spatial_frequency()
-                baseline.set_weight()
 
     def get_all_data_flattened(self) -> tuple:
         """
