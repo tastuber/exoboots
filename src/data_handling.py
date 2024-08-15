@@ -304,8 +304,8 @@ class Full_data_set():
 
     def __init__(
         self, oifits_file_ls: list[str], wave_min_ls: list[float],
-        wave_max_ls: list[float], exclude_baselines_ls_ls: list[list[str]],
-        path_to_data: str, fit_vis_or_vis2: str,
+        wave_max_ls: list[float], path_to_data: str, fit_vis_or_vis2: str,
+        exclude_baselines_ls_ls: list[list[str]] | None = None,
         unflag_all: bool = False
     ):
         """
@@ -338,6 +338,12 @@ class Full_data_set():
         """
 
         file_data_set_ls =[]
+
+        # Create empty lists in case no baselines shall be excluded.
+        if exclude_baselines_ls_ls is None:
+            exclude_baselines_ls_ls = [
+                [] for i in range(len(oifits_file_ls))
+            ]
 
         for (oifits_file, wave_min, wave_max, exclude_baselines_ls) in zip(
             oifits_file_ls, wave_min_ls, wave_max_ls, exclude_baselines_ls_ls
