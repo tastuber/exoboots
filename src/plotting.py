@@ -268,17 +268,17 @@ def plot_vis_all_wavelengths(
         # This is executed if the model has been set up.
         try:
             func_data = bs.fit_func(
-                spatial_frequency_func, *bs.param_init_value_ls
+                spatial_frequency_func, **bs.param_init_value
             )
             func_label = "initial guess"
 
             # Create string for title with the initial parameter values
             # before fitting.
             title_init_param_str = []
-            for i_param, param in enumerate(bs.model.param_names):
+            for param in bs.model.param_names:
                 title_init_param_str.append(
                     f"{get_short_param_str(param)} = "
-                    f"{bs.param_init_value_ls[i_param]} "
+                    f"{bs.param_init_value[param]} "
                     f"{get_var_unit_str(param)}"
                 )
             title_init_param_str = ", ".join(title_init_param_str)
@@ -420,17 +420,17 @@ def plot_vis_for_fixed_wavelengths(
                 # This is executed if the model has been set up.
                 try:
                     func_data = bs.fit_func(
-                        spatial_frequency_func, *bs.param_init_value_ls
+                        spatial_frequency_func, **bs.param_init_value
                     )
                     func_label = "initial guess"
 
                     # Create string for title with the initial parameter values
                     # before fitting.
                     title_init_param_str = []
-                    for i_param, param in enumerate(bs.model.param_names):
+                    for param in bs.model.param_names:
                         title_init_param_str.append(
                             f"{get_short_param_str(param)} = "
-                            f"{bs.param_init_value_ls[i_param]} "
+                            f"{bs.param_init_value[param]} "
                             f"{get_var_unit_str(param)}"
                         )
                     title_init_param_str = ", ".join(title_init_param_str)

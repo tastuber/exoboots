@@ -121,64 +121,91 @@ class Bootstrapper():
                 self.wavelength_descr = "for_single_waves"
 
     def setup_model(
-            self, vary_param_ls: list[bool], param_init_value_ls: list[float],
-            low_bound_param_ls: list[float], up_bound_param_ls: list[float]
+            self, vary_param: dict[bool], param_init_value: dict[float],
+            param_bounds: dict[tuple[float]] | None = None
     ):
         """
         Prepare the model for lmfit.
 
-        Arguments are lists of the length equaling the number of fit function's
-        parameters. The first item in the lists, respectively, belongs to the
-        first paramter, the second item to the second parameter etc.
+        Arguments are dicts with the parameters of the fit function as keys.
+        Those can always accessed via self.fit_func.__annotations__.
 
         Args:
-            vary_param_ls: Defines whether the parameter shall be varied and
+            vary_param: Defines whether the parameter shall be varied and
               optimized or remains fixed.
-            param_init_value_ls: Gives the inital value of the parameters. For fixed
+            param_init_value: Gives the inital value of the parameters. For fixed
               parameters, this is the fixed value.
-            low_bound_param_ls: Lower bound for the fitting process. Only has
-              effect on varied parameters.
-            up_bound_param_ls: Lower bound for the fitting process. Only has
-              effect on varied parameters.
+            param_bounds: Optional; parameter bounds for the fit. Contains
+              tuple with the first value being the lower bound and the second
+              value being the upper bound. The bounds only have and effect on
+              varied parameters. If None or not provided, -np.inf, np.inf are\
+              set as bounds.
+
+        Raises:
+            KeyError: In case the input arguments have keys not matching the
+              parameters of the fit function.
         """
 
-        self.vary_param_ls = vary_param_ls
-        self.N_varied_params = vary_param_ls.count(True)
-        self.param_init_value_ls = param_init_value_ls
-
         self.model = lmfit.Model(self.fit_func)
+
+        # If no parameter bounds are given, set them to -infinity, +infinitiy.
+        if param_bounds is None:
+            param_bounds = {
+                param_name: (-np.inf, np.inf)
+                for param_name in self.model.param_names
+            }
+
+        # Check whether the input dicts have the right keys.
+        if set(vary_param) != set(self.model.param_names):
+            raise KeyError(
+                "The argument vary_param of setup_model() has the wrong"
+                f" keys. It has {list(vary_param.keys())} but needs "
+                f"{self.model.param_names}."
+            )
+        if set(param_init_value) != set(self.model.param_names):
+            raise KeyError(
+                "The argument param_init_value of setup_model() has the wrong"
+                f" keys. It has {list(param_init_value.keys())} but needs "
+                f"{self.model.param_names}."
+            )
+        if set(param_bounds) != set(self.model.param_names):
+            raise KeyError(
+                "The argument param_bounds of setup_model() has the wrong"
+                f" keys. It has {list(param_bounds.keys())} but needs "
+                f"{self.model.param_names}."
+            )
+
+        self.vary_param = vary_param
+        self.N_varied_params = sum(
+            1 for condition in vary_param.values() if condition
+        )
+        self.param_init_value = param_init_value
 
         # Add the parameters to the model.
         # Note that lmfit creates parameters also for fixed parameters.
         self.model_params = lmfit.Parameters()
-        for (param_name, vary_param, value_param, low_bound_param,
-             up_bound_param) in zip(
-                self.model.param_names, self.vary_param_ls, param_init_value_ls,
-                low_bound_param_ls, up_bound_param_ls
-            ):
+        for param_name in self.model.param_names:
             self.model_params.add(
-                param_name, vary=vary_param, value=value_param,
-                min=low_bound_param, max=up_bound_param
+                param_name,
+                vary=vary_param[param_name],
+                value=param_init_value[param_name],
+                min=param_bounds[param_name][0],
+                max=param_bounds[param_name][1]
             )
 
         # Create list of the varied parameters.
-        self.varied_param_ls = list(
-            itertools.compress(self.model.param_names, self.vary_param_ls)
-        )
+        self.varied_param_ls = [
+            param_name for param_name in self.model.param_names
+            if vary_param[param_name]
+        ]
 
         # Create dictionary of the fixed parameters. This is mainly for easier
         # plotting.
-        self.fixed_param = {}
-        for i_fixed_param, (fixed_param, fixed_param_value) in enumerate(zip(
-            itertools.compress(self.model.param_names,
-                               np.invert(self.vary_param_ls)),
-            itertools.compress(self.param_init_value_ls,
-                               np.invert(self.vary_param_ls)))
-        ):
-
-            self.fixed_param[fixed_param] = (
-                fixed_param_value
-            )
+        self.fixed_param = {
+            param_name: param_init_value[param_name]
+            for param_name in self.model_params
+            if not vary_param[param_name]
+        }
 
     # TODO: Move this function into the case selection in __init__(). Make
     # the do_bootstrapping an attribute.
@@ -217,18 +244,12 @@ class Bootstrapper():
                 spatial_frequency=spatial_frequency
             )
 
-            # Lmfit gives results also for fixed parameters. Exclude them in
-            # the result array.
-            i_varied_param = 0
-            for i_fit_param, best_value in enumerate(
-                result.best_values.values()
-            ):
+            # Store the sampling results for the varied parameters.
+            for i_varied_param, param_name in enumerate(self.varied_param_ls):
 
-                if self.vary_param_ls[i_fit_param]:
-
-                    self.sampling_results[i_varied_param,
-                                          i_sample] = best_value
-                    i_varied_param += 1
+                self.sampling_results[i_varied_param, i_sample] = (
+                    result.best_values[param_name]
+                )
 
         param_results_median = np.median(self.sampling_results, axis=1)
         param_results_error_minus = (
@@ -315,19 +336,12 @@ class Bootstrapper():
                     spatial_frequency=spatial_frequency
                 )
 
-                # Lmfit gives results also for fixed parameters. Exclude them
-                # in the result array.
-                i_varied_param = 0
-                for i_fit_param, best_value in enumerate(
-                    result.best_values.values()
-                ):
+                # Store the sampling results for the varied parameters.
+                for i_varied_param, param_name in enumerate(self.varied_param_ls):
 
-                    if self.vary_param_ls[i_fit_param]:
-
-                        self.sampling_results[
-                            i_wave, i_varied_param, i_sample
-                        ] = best_value
-                        i_varied_param += 1
+                    self.sampling_results[i_wave, i_varied_param, i_sample] = (
+                        result.best_values[param_name]
+                    )
 
             param_results_median[i_wave] = np.median(
                 self.sampling_results[i_wave], axis=1
