@@ -2,7 +2,7 @@ import astropy.units as u
 import numpy as np
 import scipy
 
-def comp_VIS2_limb_dark_disk_plus_overresolved(
+def comp_VIS2_limbDarkDisk_overresolved(
     spatial_frequency: "Scalar or array (float)",
     f: float,
     stellar_diameter: float,
@@ -11,27 +11,20 @@ def comp_VIS2_limb_dark_disk_plus_overresolved(
     """
     Compute the squared vis. for limb dark. disk and overresolved component.
 
-    Compute the result as the square of the visibility amplitude.
-
-    Args:
-        spatial_frequency: The spatial frequency in units of 1/rad.
-        f: The ratio of the flux of the overresolved component and the total
-          flux (overresolved component plus star).
-        stellar_diameter: The stellar diameter in units of mas.
-        lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
-          for a uniform disk without limb-darkening.
+    Compute the result as the square of the visibility amplitude. See for more
+    information and Args the function comp_VISAMP_limbDarkDisk_overresolved.
 
     Returns:
       VIS2: The computed squared visibility as scalar or array.
     """
 
-    VIS2 = comp_VISAMP_limb_dark_disk_plus_overresolved(
+    VIS2 = comp_VISAMP_limbDarkDisk_overresolved(
         spatial_frequency, f, stellar_diameter, lin_limb_dark_param
     )**2
 
     return VIS2
 
-def comp_VISAMP_limb_dark_disk_plus_overresolved(
+def comp_VISAMP_limbDarkDisk_overresolved(
     spatial_frequency: "Scalar or array (float)",
     f: float,
     stellar_diameter: float,
@@ -45,7 +38,7 @@ def comp_VISAMP_limb_dark_disk_plus_overresolved(
     Args:
         spatial_frequency: The spatial frequency in units of 1/rad.
         f: The ratio of the flux of the overresolved component and the total
-          flux (overresolved component plus star).
+          flux (star + overresolved component).
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
           for a uniform disk without limb-darkening.
@@ -55,79 +48,73 @@ def comp_VISAMP_limb_dark_disk_plus_overresolved(
     """
 
     VISAMP = (
-        (1.0-f) * comp_VISAMP_limb_dark_disk(spatial_frequency,
+        (1.0-f) * comp_VISAMP_limbDarkDisk(spatial_frequency,
+                                           stellar_diameter,
+                                           lin_limb_dark_param)
+    )
+
+    return VISAMP
+
+def comp_VIS2_limbDarkDisk_gauss(
+    spatial_frequency: "Scalar or array (float)",
+    f: float,
+    stellar_diameter: float,
+    lin_limb_dark_param: float,
+    FWHM: float
+) -> "Scalar or array (float)":
+    """
+    Compute the squared vis. for limb darkened disk and surrounding Gaussian.
+
+    Compute the result as the square of the visibility amplitude. See for more
+    information and Args the function comp_VISAMP_limbDarkDisk_gauss.
+
+    Returns:
+      VIS2: The computed squared visibility as scalar or array.
+    """
+
+    VIS2 = comp_VISAMP_limbDarkDisk_gauss(
+        spatial_frequency, f, stellar_diameter, lin_limb_dark_param, FWHM
+    )**2
+
+    return VIS2
+
+def comp_VISAMP_limbDarkDisk_gauss(
+    spatial_frequency: "Scalar or array (float)",
+    f: float,
+    stellar_diameter: float,
+    lin_limb_dark_param: float,
+    FWHM: float
+) -> "Scalar or array (float)":
+    """
+    Compute (squared) visibility for limb darkened disk and environment.
+
+    Reference: Di Folco et al. 2007, eq. 3.
+    Both the star and the Gaussian are located in the center of the
+    field-of-view.
+
+    Args:
+        spatial_frequency: The spatial frequency in units of 1/rad.
+        f: The ratio of the flux of the Gaussian and the total flux (star +
+          Gaussian).
+        stellar_diameter: The stellar diameter in units of mas.
+        lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
+          for a uniform disk without limb-darkening.
+        FWHM: The FWHM of the circular Gaussian in units of mas.
+
+    Returns:
+      VISAMP: The computed visibility amplitude as scalar or array.
+    """
+
+    VISAMP = (
+        f * comp_VISAMP_circGauss(spatial_frequency, FWHM)
+        + (1.0-f) * comp_VISAMP_limbDarkDisk(spatial_frequency,
                                              stellar_diameter,
                                              lin_limb_dark_param)
     )
 
     return VISAMP
 
-def comp_VIS2_limb_dark_disk_plus_uniform_CSE(
-    spatial_frequency: "Scalar or array (float)",
-    f: float,
-    stellar_diameter: float,
-    lin_limb_dark_param: float,
-    FOV: float
-) -> "Scalar or array (float)":
-    """
-    Compute the squared vis. for limb darkened disk and environment.
-
-    Compute the result as the square of the visibility amplitude.
-
-    Args:
-        spatial_frequency: The spatial frequency in units of 1/rad.
-        f: The ratio of the flux of the uniform circumstellar environment (CSE)
-          and the total flux (CSE plus star).
-        stellar_diameter: The stellar diameter in units of mas.
-        lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
-          for a uniform disk without limb-darkening.
-        FOV: The field-of-view of the instrument in units of mas.
-
-    Returns:
-      VIS2: The computed squared visibility as scalar or array.
-    """
-
-    VIS2 = comp_VISAMP_limb_dark_disk_plus_uniform_CSE(
-        spatial_frequency, f, stellar_diameter, lin_limb_dark_param, FOV
-    )**2
-
-    return VIS2
-
-def comp_VISAMP_limb_dark_disk_plus_uniform_CSE(
-    spatial_frequency: "Scalar or array (float)",
-    f: float,
-    stellar_diameter: float,
-    lin_limb_dark_param: float,
-    FOV: float
-) -> "Scalar or array (float)":
-    """
-    Compute (squared) visibility for limb darkened disk and environment.
-
-    Reference: Di Folco et al. 2007, eq. 3.
-
-    Args:
-        spatial_frequency: The spatial frequency in units of 1/rad.
-        f: The ratio of the flux of the uniform circumstellar environment (CSE)
-          and the total flux (CSE plus star).
-        stellar_diameter: The stellar diameter in units of mas.
-        lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
-          for a uniform disk without limb-darkening.
-        FOV: The field-of-view of the instrument in units of mas.
-
-    Returns:
-      VISAMP: The computed visibility amplitude as scalar or array.
-    """
-
-    VISAMP = (
-        f * comp_VISAMP_uniform_gauss_sens(spatial_frequency, FOV)
-        + (1.0-f) * comp_VISAMP_limb_dark_disk(spatial_frequency,
-                                               stellar_diameter,
-                                               lin_limb_dark_param)
-    )
-
-    return VISAMP
-
-def comp_VISAMP_limb_dark_disk(
+def comp_VISAMP_limbDarkDisk(
     spatial_frequency: "Scalar or array (float)",
     stellar_diameter: float,
     lin_limb_dark_param: float = 0.0
@@ -172,25 +159,25 @@ def comp_VISAMP_limb_dark_disk(
 
     return VISAMP
 
-def comp_VISAMP_uniform_gauss_sens(
+def comp_VISAMP_circGauss(
     spatial_frequency: "Scalar or array (float)",
-    FOV: float
+    FWHM: float
 ) -> "Scalar or array (float)":
     """
-    Compute vis. ampltfor Gaussian with FWHM=field-of-view.
+    Compute visibility amplitude for Gaussian from FWHM.
 
     Args:
         spatial_frequency: The spatial frequency in units of 1/rad.
-        FOV: The field-of-view of the instrument in units of mas.
+        FWHM: The FWHM of a circular Gaussian in units of mas.
 
     Returns:
         VISAMP: The visibility amplitude.
     """
 
     spatial_frequency *= u.rad
-    FOV *= u.mas
+    FWHM *= u.mas
 
-    x = (np.pi * FOV.to(u.rad) * spatial_frequency).value
+    x = (np.pi * FWHM.to(u.rad) * spatial_frequency).value
 
     VISAMP = np.exp(-x**2 / (4*np.log(2)))
 

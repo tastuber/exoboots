@@ -605,8 +605,8 @@ def get_short_param_str(param_descr: str) -> str:
         short_param_str = "stellar diameter"
     elif param_descr == "lin_limb_dark_param":
         short_param_str = "a"
-    elif param_descr == "FOV":
-        short_param_str = "FOV"
+    elif param_descr == "FWHM":
+        short_param_str = "FWHM"
 
     return short_param_str
 
@@ -627,8 +627,8 @@ def get_long_param_str(param_descr: str) -> str:
         long_param_str = "stellar diameter"
     elif param_descr == "lin_limb_dark_param":
         long_param_str = "linear limb-darkened parameter a"
-    elif param_descr == "FOV":
-        long_param_str = "field-of-view (FOV)"
+    elif param_descr == "FWHM":
+        long_param_str = "Gaussian FWHM"
 
     return long_param_str
 
@@ -651,7 +651,7 @@ def get_var_unit_str(var_descr: str) -> str:
         unit_str = "mas"
     elif var_descr == "lin_limb_dark_param":
         unit_str = ""
-    elif var_descr == "FOV":
+    elif var_descr == "FWHM":
         unit_str = "mas"
     else:
         unit_str = ""

@@ -66,25 +66,25 @@ class Bootstrapper():
             case 1:
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_func = \
-                        model_functions.comp_VISAMP_limb_dark_disk_plus_overresolved
+                        model_functions.comp_VISAMP_limbDarkDisk_overresolved
                     self.fit_func_descr = \
-                        "VISAMP_limb_dark_disk_plus_overresolved"
+                        "VISAMP_limbDarkDisk_overresolved"
                 elif fit_vis_or_vis2 == "VIS2":
                     self.fit_func = \
-                        model_functions.comp_VIS2_limb_dark_disk_plus_overresolved
+                        model_functions.comp_VIS2_limbDarkDisk_overresolved
                     self.fit_func_descr = \
-                        "VIS2_limb_dark_disk_plus_overresolved"
+                        "VIS2_limbDarkDisk_overresolved"
             case 2:
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_func = \
-                        model_functions.comp_VISAMP_limb_dark_disk_plus_uniform_CSE
+                        model_functions.comp_VISAMP_limbDarkDisk_gauss
                     self.fit_func_descr = \
-                        "VISAMP_limb_dark_disk_plus_uniform_CSE"
+                        "VISAMP_limbDarkDisk_gauss"
                 elif fit_vis_or_vis2 == "VIS2":
                     self.fit_func = \
-                        model_functions.comp_VIS2_limb_dark_disk_plus_uniform_CSE
+                        model_functions.comp_VIS2_limbDarkDisk_gauss
                     self.fit_func_descr = \
-                        "VIS2_limb_dark_disk_plus_uniform_CSE"
+                        "VIS2_limbDarkDisk_gauss"
 
         # Select how the data is bootstrapped.
         match self.bootstrap_selector:
