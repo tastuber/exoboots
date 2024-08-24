@@ -133,12 +133,12 @@ class Bootstrapper():
         Args:
             vary_param: Defines whether the parameter shall be varied and
               optimized or remains fixed.
-            param_init_value: Gives the inital value of the parameters. For fixed
-              parameters, this is the fixed value.
+            param_init_value: Gives the inital value of the parameters. For
+              fixed parameters, this is the fixed value.
             param_bounds: Optional; parameter bounds for the fit. Contains
               tuple with the first value being the lower bound and the second
               value being the upper bound. The bounds only have and effect on
-              varied parameters. If None or not provided, -np.inf, np.inf are\
+              varied parameters. If None or not provided, -np.inf, np.inf are
               set as bounds.
 
         Raises:
@@ -146,7 +146,10 @@ class Bootstrapper():
               parameters of the fit function.
         """
 
-        self.model = lmfit.Model(self.fit_func)
+        self.model = lmfit.Model(
+            self.fit_func,
+            independent_vars=["u_spatial_frequency", "v_spatial_frequency"]
+        )
 
         # If no parameter bounds are given, set them to -infinity, +infinitiy.
         if param_bounds is None:
@@ -237,11 +240,12 @@ class Bootstrapper():
         for i_sample in range(self.N_sample):
 
             (data, data_error, wavelength,
-             spatial_frequency, weight) = self.sample()
+             u_spatial_frequency, v_spatial_frequency, weight) = self.sample()
 
             result = self.model.fit(
                 data=data, params=self.model_params, weights=weight,
-                spatial_frequency=spatial_frequency
+                u_spatial_frequency=u_spatial_frequency,
+                v_spatial_frequency=v_spatial_frequency
             )
 
             # Store the sampling results for the varied parameters.
@@ -267,7 +271,7 @@ class Bootstrapper():
         # saving.
         self.results = {}
         relative_sed = np.zeros(4)
-        _, _, tmp_wave, _, _ = self.full_data_set.get_all_data_flattened()
+        _, _, tmp_wave, _, _, _ = self.full_data_set.get_all_data_flattened()
         mean_wavelength = np.mean(tmp_wave)
 
         for i_varied_param, varied_param in enumerate(self.varied_param_ls):
@@ -327,13 +331,14 @@ class Bootstrapper():
 
             for i_sample in range(self.N_sample):
 
-                (data, spatial_frequency, weight) = (
+                (data, u_spatial_frequency, v_spatial_frequency, weight) = (
                     self.sample_baselines_for_fixed_wavelength(i_wave)
                 )
 
                 result = self.model.fit(
                     data=data, params=self.model_params, weights=weight,
-                    spatial_frequency=spatial_frequency
+                    u_spatial_frequency=u_spatial_frequency,
+                    v_spatial_frequency=v_spatial_frequency
                 )
 
                 # Store the sampling results for the varied parameters.
@@ -510,12 +515,16 @@ class Bootstrapper():
         (data,
          data_error,
          wavelength,
-         spatial_frequency,
+         u_spatial_frequency,
+         v_spatial_frequency,
          weight) = self.resample_parallel(
             self.full_data_set.get_all_data_flattened()
         )
 
-        return data, data_error, wavelength, spatial_frequency, weight
+        return (
+            data, data_error, wavelength, u_spatial_frequency,
+            v_spatial_frequency, weight
+        )
 
     def sample_observations(self):
 
@@ -552,15 +561,16 @@ class Bootstrapper():
         Returns:
         """
 
-        (data, spatial_frequency, weight) = (
+        (data, u_spatial_frequency, v_spatial_frequency, weight) = (
             self.resample_parallel(
                 (self.data_per_wavelength[i_wave].data,
-                 self.data_per_wavelength[i_wave].spatial_frequency,
+                 self.data_per_wavelength[i_wave].u_spatial_frequency,
+                 self.data_per_wavelength[i_wave].v_spatial_frequency,
                  self.data_per_wavelength[i_wave].weight)
             )
         )
 
-        return data, spatial_frequency, weight
+        return data, u_spatial_frequency, v_spatial_frequency, weight
 
     def resample(self, data: "iterable", sample_size=None) -> "iterable":
         """

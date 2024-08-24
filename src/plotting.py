@@ -3,6 +3,8 @@ import numpy as np
 
 from matplotlib.backends.backend_pdf import PdfPages
 
+import data_handling
+
 def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
 
     match bs.bootstrap_selector:
@@ -198,8 +200,16 @@ def plot_vis_all_wavelengths(
     wavelength_descr = "all_waves"
 
     ##### Precalculations.
-    (data, data_error,
-     _, spatial_frequency, _) = bs.full_data_set.get_all_data_flattened()
+    (data,
+     data_error,
+     _,
+     u_spatial_frequency,
+     v_spatial_frequency,
+     _) = bs.full_data_set.get_all_data_flattened()
+
+    spatial_frequency = data_handling.comp_spatial_frequency(
+        u_spatial_frequency, v_spatial_frequency
+    )
 
     if not plot_data_uncertainty:
         data_error = None
@@ -209,15 +219,18 @@ def plot_vis_all_wavelengths(
     # the initial values. If the bootstrapping has been performed, plot the
     # model with the best fit parameters.
 
-    # Derive different data intervals for the measured data, the analytic
-    # function, and the axis. Each interval border is 5% smaller/larger
-    # than the former.
-    spatial_frequency_min = spatial_frequency.min()
-    spatial_frequency_max = spatial_frequency.max()
-    func_min = 0.95 * spatial_frequency_min
-    func_max = 1.05 * spatial_frequency_max
+    # Derive input values for the analytic function to produce data
+    # for plotting.
+    u_spatial_frequency_func = np.linspace(
+        u_spatial_frequency.min(), u_spatial_frequency.max(), 100
+    )
+    v_spatial_frequency_func = np.linspace(
+        v_spatial_frequency.min(), v_spatial_frequency.max(), 100
+    )
 
-    spatial_frequency_func = np.geomspace(func_min, func_max, 100)
+    spatial_frequency_func = data_handling.comp_spatial_frequency(
+        u_spatial_frequency_func, v_spatial_frequency_func
+    )
 
     # This is executed if the bootstrapping has been performed.
     try:
@@ -228,7 +241,8 @@ def plot_vis_all_wavelengths(
         }
         # Obtain data for the best fit model.
         func_data = bs.fit_func(
-            spatial_frequency_func, **bs.fixed_param, **fitted_param
+            u_spatial_frequency_func, v_spatial_frequency_func,
+            **bs.fixed_param, **fitted_param
         )
         func_label = "result"
 
@@ -268,7 +282,8 @@ def plot_vis_all_wavelengths(
         # This is executed if the model has been set up.
         try:
             func_data = bs.fit_func(
-                spatial_frequency_func, **bs.param_init_value
+                u_spatial_frequency_func, v_spatial_frequency_func,
+                **bs.param_init_value
             )
             func_label = "initial guess"
 
@@ -346,9 +361,16 @@ def plot_vis_for_fixed_wavelengths(
                 f"{wavelength*1e6:.4f} micron"
             )
 
+            u_spatial_frequency = (
+                bs.data_per_wavelength[i_wave].u_spatial_frequency
+            )
+            v_spatial_frequency = (
+                bs.data_per_wavelength[i_wave].v_spatial_frequency
+            )
             spatial_frequency = (
                 bs.data_per_wavelength[i_wave].spatial_frequency
             )
+
             data = bs.data_per_wavelength[i_wave].data
             data_error = bs.data_per_wavelength[i_wave].data_error
             if not plot_data_uncertainty:
@@ -359,15 +381,18 @@ def plot_vis_for_fixed_wavelengths(
             # model with the initial values. If the bootstrapping has been
             # performed, plot the model with the best fit parameters.
 
-            # Derive different data intervals for the measured data, the
-            # analytic function, and the axis. Each interval border is 5%
-            # smaller/larger than the former.
-            spatial_frequency_min = spatial_frequency.min()
-            spatial_frequency_max = spatial_frequency.max()
-            func_min = 0.95 * spatial_frequency_min
-            func_max = 1.05 * spatial_frequency_max
+            # Derive input values for the analytic function to produce data
+            # for plotting.
+            u_spatial_frequency_func = np.linspace(
+                u_spatial_frequency.min(), u_spatial_frequency.max(), 100
+            )
+            v_spatial_frequency_func = np.linspace(
+                v_spatial_frequency.min(), v_spatial_frequency.max(), 100
+            )
 
-            spatial_frequency_func = np.geomspace(func_min, func_max, 100)
+            spatial_frequency_func = data_handling.comp_spatial_frequency(
+                u_spatial_frequency_func, v_spatial_frequency_func
+            )
 
             # This is executed if the bootstrapping has been performed.
             try:
@@ -379,7 +404,8 @@ def plot_vis_for_fixed_wavelengths(
                 }
                 # Obtain data for the best fit model.
                 func_data = bs.fit_func(
-                    spatial_frequency_func, **bs.fixed_param, **fitted_param
+                    u_spatial_frequency_func, v_spatial_frequency_func,
+                    **bs.fixed_param, **fitted_param
                 )
                 func_label = "result"
 
@@ -420,7 +446,8 @@ def plot_vis_for_fixed_wavelengths(
                 # This is executed if the model has been set up.
                 try:
                     func_data = bs.fit_func(
-                        spatial_frequency_func, **bs.param_init_value
+                        u_spatial_frequency_func, v_spatial_frequency_func,
+                        **bs.param_init_value
                     )
                     func_label = "initial guess"
 

@@ -2,8 +2,11 @@ import astropy.units as u
 import numpy as np
 import scipy
 
+from data_handling import comp_spatial_frequency
+
 def comp_VIS2_limbDarkDisk_overresolved(
-    spatial_frequency: "Scalar or array (float)",
+    u_spatial_frequency: "Scalar or array (float)",
+    v_spatial_frequency: "Scalar or array (float)",
     f: float,
     stellar_diameter: float,
     lin_limb_dark_param: float,
@@ -19,13 +22,15 @@ def comp_VIS2_limbDarkDisk_overresolved(
     """
 
     VIS2 = comp_VISAMP_limbDarkDisk_overresolved(
-        spatial_frequency, f, stellar_diameter, lin_limb_dark_param
+        u_spatial_frequency, v_spatial_frequency, f, stellar_diameter,
+        lin_limb_dark_param
     )**2
 
     return VIS2
 
 def comp_VISAMP_limbDarkDisk_overresolved(
-    spatial_frequency: "Scalar or array (float)",
+    u_spatial_frequency: "Scalar or array (float)",
+    v_spatial_frequency: "Scalar or array (float)",
     f: float,
     stellar_diameter: float,
     lin_limb_dark_param: float
@@ -36,7 +41,8 @@ def comp_VISAMP_limbDarkDisk_overresolved(
     Reference: Di Folco et al. 2007, eq. 4.
 
     Args:
-        spatial_frequency: The spatial frequency in units of 1/rad.
+        u_spatial_frequency: Spatial frequency along u axis in units of 1/rad.
+        v_spatial_frequency: Spatial frequency along v axis in units of 1/rad.
         f: The ratio of the flux of the overresolved component and the total
           flux (star + overresolved component).
         stellar_diameter: The stellar diameter in units of mas.
@@ -48,15 +54,19 @@ def comp_VISAMP_limbDarkDisk_overresolved(
     """
 
     VISAMP = (
-        (1.0-f) * comp_VISAMP_limbDarkDisk(spatial_frequency,
-                                           stellar_diameter,
-                                           lin_limb_dark_param)
+        (1.0-f) * comp_VISAMP_limbDarkDisk(
+            u_spatial_frequency,
+            v_spatial_frequency,
+            stellar_diameter,
+            lin_limb_dark_param
+            )
     )
 
     return VISAMP
 
 def comp_VIS2_limbDarkDisk_gauss(
-    spatial_frequency: "Scalar or array (float)",
+    u_spatial_frequency: "Scalar or array (float)",
+    v_spatial_frequency: "Scalar or array (float)",
     f: float,
     stellar_diameter: float,
     lin_limb_dark_param: float,
@@ -73,13 +83,15 @@ def comp_VIS2_limbDarkDisk_gauss(
     """
 
     VIS2 = comp_VISAMP_limbDarkDisk_gauss(
-        spatial_frequency, f, stellar_diameter, lin_limb_dark_param, FWHM
+        u_spatial_frequency, v_spatial_frequency, f, stellar_diameter,
+        lin_limb_dark_param, FWHM
     )**2
 
     return VIS2
 
 def comp_VISAMP_limbDarkDisk_gauss(
-    spatial_frequency: "Scalar or array (float)",
+    u_spatial_frequency: "Scalar or array (float)",
+    v_spatial_frequency: "Scalar or array (float)",
     f: float,
     stellar_diameter: float,
     lin_limb_dark_param: float,
@@ -93,7 +105,8 @@ def comp_VISAMP_limbDarkDisk_gauss(
     field-of-view.
 
     Args:
-        spatial_frequency: The spatial frequency in units of 1/rad.
+        u_spatial_frequency: Spatial frequency along u axis in units of 1/rad.
+        v_spatial_frequency: Spatial frequency along v axis in units of 1/rad.
         f: The ratio of the flux of the Gaussian and the total flux (star +
           Gaussian).
         stellar_diameter: The stellar diameter in units of mas.
@@ -106,8 +119,11 @@ def comp_VISAMP_limbDarkDisk_gauss(
     """
 
     VISAMP = (
-        f * comp_VISAMP_circGauss(spatial_frequency, FWHM)
-        + (1.0-f) * comp_VISAMP_limbDarkDisk(spatial_frequency,
+        f * comp_VISAMP_circGauss(u_spatial_frequency,
+                                  v_spatial_frequency,
+                                  FWHM)
+        + (1.0-f) * comp_VISAMP_limbDarkDisk(u_spatial_frequency,
+                                             v_spatial_frequency,
                                              stellar_diameter,
                                              lin_limb_dark_param)
     )
@@ -115,7 +131,8 @@ def comp_VISAMP_limbDarkDisk_gauss(
     return VISAMP
 
 def comp_VISAMP_limbDarkDisk(
-    spatial_frequency: "Scalar or array (float)",
+    u_spatial_frequency: "Scalar or array (float)",
+    v_spatial_frequency: "Scalar or array (float)",
     stellar_diameter: float,
     lin_limb_dark_param: float = 0.0
 ) -> "Scalar or array (float)":
@@ -129,13 +146,18 @@ def comp_VISAMP_limbDarkDisk(
         the equation is from Kirchschlager et al. 2020, eq. 2.
 
     Args:
-        spatial_frequency: The spatial frequency in units of 1/rad.
+        u_spatial_frequency: Spatial frequency along u axis in units of 1/rad.
+        v_spatial_frequency: Spatial frequency along v axis in units of 1/rad.
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter.
 
     Returns:
         VISAMP: The visibility amplitude.
     """
+
+    spatial_frequency = comp_spatial_frequency(
+        u_spatial_frequency, v_spatial_frequency
+    )
 
     spatial_frequency *= u.rad
     stellar_diameter *= u.mas
@@ -160,19 +182,25 @@ def comp_VISAMP_limbDarkDisk(
     return VISAMP
 
 def comp_VISAMP_circGauss(
-    spatial_frequency: "Scalar or array (float)",
+    u_spatial_frequency: "Scalar or array (float)",
+    v_spatial_frequency: "Scalar or array (float)",
     FWHM: float
 ) -> "Scalar or array (float)":
     """
     Compute visibility amplitude for Gaussian from FWHM.
 
     Args:
-        spatial_frequency: The spatial frequency in units of 1/rad.
+        u_spatial_frequency: Spatial frequency along u axis in units of 1/rad.
+        v_spatial_frequency: Spatial frequency along v axis in units of 1/rad.
         FWHM: The FWHM of a circular Gaussian in units of mas.
 
     Returns:
         VISAMP: The visibility amplitude.
     """
+
+    spatial_frequency = comp_spatial_frequency(
+        u_spatial_frequency, v_spatial_frequency
+    )
 
     spatial_frequency *= u.rad
     FWHM *= u.mas

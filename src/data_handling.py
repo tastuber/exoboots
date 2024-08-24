@@ -6,6 +6,22 @@ from scipy.stats import binned_statistic
 import exceptions
 import plotting
 
+def comp_spatial_frequency(u_spatial_frequency, v_spatialfrequency):
+    """
+    Compute the spatial frequency related to the baseline.
+
+    Args:
+        u_spatial_frequency: The spatial frequencies along the u coordinate.
+        v_spatial_frequency: The spatial frequencies along the v coordinate.
+
+    Returns:
+        spatial_frequency: The spatial frequencies along the baseline.
+    """
+
+    spatial_frequency = (u_spatial_frequency**2 + v_spatialfrequency**2)**0.5
+
+    return spatial_frequency
+
 def read_settings(settings_file: str) -> (list, list, list, list):
     """
     Read the settings.txt file and put the data in lists.
@@ -191,6 +207,10 @@ class Baseline():
         To get the common representation (e.g., used by the JMMC tool
         Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one has to multiply with
         1e-6.
+      u_spatial_frequency: Same as spatial_frequency, but only along the
+        u-axis.
+      v_spatial_frequency: Same as spatial_frequency, but only along the
+        v-axis.
       weight: Weight of the data points for least-squares fitting.
     """
 
@@ -227,6 +247,8 @@ class Baseline():
     def compute_spatial_frequency(self):
 
         self.spatial_frequency = self.B / self.wavelength
+        self.u_spatial_frequency = self.ucoord / self.wavelength
+        self.v_spatial_frequency = self.vcoord / self.wavelength
 
     def set_weight(self, weight_mode: str):
         """
@@ -588,13 +610,15 @@ class Full_data_set():
 
         Returns:
             Returns object attribute arrays in a tuple of the form
-            (data, data_error, wavelength, spatial_frequency, weight).
+            (data, data_error, wavelength, u_spatial_frequency,
+            v_spatial_frequency, weight).
         """
 
         data_ls = []
         data_error_ls = []
         wavelength_ls = []
-        spatial_frequency_ls = []
+        u_spatial_frequency_ls = []
+        v_spatial_frequency_ls = []
         weight_ls = []
 
         for file_data_set in self.file_data_set_ls:
@@ -604,16 +628,21 @@ class Full_data_set():
                 data_ls.extend(baseline.data)
                 data_error_ls.extend(baseline.data_error)
                 wavelength_ls.extend(baseline.wavelength)
-                spatial_frequency_ls.extend(baseline.spatial_frequency)
+                u_spatial_frequency_ls.extend(baseline.u_spatial_frequency)
+                v_spatial_frequency_ls.extend(baseline.v_spatial_frequency)
                 weight_ls.extend(baseline.weight)
 
         data = np.asarray(data_ls).flatten()
         data_error = np.asarray(data_error_ls).flatten()
         wavelength = np.asarray(wavelength_ls).flatten()
-        spatial_frequency = np.asarray(spatial_frequency_ls).flatten()
+        u_spatial_frequency = np.asarray(u_spatial_frequency_ls).flatten()
+        v_spatial_frequency = np.asarray(v_spatial_frequency_ls).flatten()
         weight = np.asarray(weight_ls).flatten()
 
-        return data, data_error, wavelength, spatial_frequency, weight
+        return (
+            data, data_error, wavelength, u_spatial_frequency,
+            v_spatial_frequency, weight
+        )
 
     def get_all_baselines(self) -> list:
         """
@@ -678,6 +707,8 @@ class Full_data_set():
             data = np.zeros(N_baselines)
             data_error = np.zeros(N_baselines)
             spatial_frequency = np.zeros(N_baselines)
+            u_spatial_frequency = np.zeros(N_baselines)
+            v_spatial_frequency = np.zeros(N_baselines)
             weight = np.zeros(N_baselines)
             ucoord = np.zeros(N_baselines)
             vcoord = np.zeros(N_baselines)
@@ -690,6 +721,10 @@ class Full_data_set():
                 data_error[i_baseline] = baseline.data_error[i_wave]
                 spatial_frequency[i_baseline] = \
                     baseline.spatial_frequency[i_wave]
+                u_spatial_frequency[i_baseline] = \
+                    baseline.u_spatial_frequency[i_wave]
+                v_spatial_frequency[i_baseline] = \
+                    baseline.v_spatial_frequency[i_wave]
                 weight[i_baseline] = baseline.weight[i_wave]
                 ucoord[i_baseline] = baseline.ucoord
                 vcoord[i_baseline] = baseline.vcoord
@@ -698,8 +733,17 @@ class Full_data_set():
 
             Data_per_wavelength_ls.append(
                 Data_per_wavelength(
-                    single_wavelength, data, data_error, spatial_frequency,
-                    weight, ucoord, vcoord, B, baseline_id_ls
+                    wavelength=single_wavelength,
+                    data=data,
+                    data_error=data_error,
+                    spatial_frequency=spatial_frequency,
+                    u_spatial_frequency=u_spatial_frequency,
+                    v_spatial_frequency=v_spatial_frequency,
+                    weight=weight,
+                    ucoord=ucoord,
+                    vcoord=vcoord,
+                    B=B,
+                    baseline_id_ls=baseline_id_ls
                 )
             )
 
@@ -729,25 +773,30 @@ class Data_per_wavelength():
         data: The data associated with the wavelengths from all baselines.
         data_error: Same as data, but for the data uncertainties.
         weight: Weight of the data points for least-squares fitting.
+        spatial_frequency: The measured spatial frequencies along the baseline.
+          They are computed via spatial_frequency = baseline/wavelength and
+          have the unit [1/rad]. To get the common representation (e.g., used
+          by the JMMC tool Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one
+          has to multiply with 1e-6.
+        u_spatial_frequency: Spatial frequency along u axis in units of 1/rad.
+        v_spatial_frequency: Spatial frequency along v axis in units of 1/rad.
         ucoord: The u-coordinate in units of meter [m].
         vcoord: The v-coordinate in units of meter [m].
         B: The projected baseline length in units of meter [m].
-        spatial_frequency: The measured spatial frequencies. They are computed
-          via spatial_frequency = baseline/wavelength and have the unit
-          [1/rad]. To get the common representation (e.g., used by the JMMC
-          tool Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one has to
-          multiply with 1e-6.
     """
 
     def __init__(
-        self, wavelength, data, data_error, spatial_frequency, weight, ucoord,
-        vcoord, B, baseline_id_ls
+        self, wavelength, data, data_error, spatial_frequency,
+        u_spatial_frequency, v_spatial_frequency, weight, ucoord, vcoord, B,
+        baseline_id_ls
     ):
 
         self.wavelength = wavelength
         self.data = data
         self.data_error = data_error
         self.spatial_frequency = spatial_frequency
+        self.u_spatial_frequency = u_spatial_frequency
+        self.v_spatial_frequency = v_spatial_frequency
         self.weight = weight
         self.ucoord = ucoord
         self.vcoord = vcoord
