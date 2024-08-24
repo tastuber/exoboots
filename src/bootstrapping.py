@@ -494,10 +494,16 @@ class Bootstrapper():
 
         # TODO: Write header with information about the fit settings.
         header = None
-        data_handling.write_dict_to_txt(
-            d=self.sed, file=file_name, path=save_sed_path,
-            header=header
-        )
+
+        try:
+            data_handling.write_dict_to_txt(
+                d=self.sed, file=file_name, path=save_sed_path,
+                header=header
+            )
+        except AttributeError:
+            print("No dust SED has been computed yet.\n"
+                  "Execute: Bootstrapper.compute_dust_sed()")
+            raise
 
     def sample_data_points(self):
 
@@ -665,10 +671,15 @@ class Bootstrapper():
         if not save_fig_path:
             save_fig_path = self.default_save_fig_path
 
-        plotting.plot_dust_sed(
-            self, plot_data_uncertainty, figsize, save_fig, save_fig_path,
-            self.wavelength_descr, title
-        )
+        try:
+            plotting.plot_dust_sed(
+                self, plot_data_uncertainty, figsize, save_fig, save_fig_path,
+                self.wavelength_descr, title
+            )
+        except AttributeError:
+            print("No dust SED has been computed yet.\n"
+                  "Execute: Bootstrapper.compute_dust_sed()")
+            raise
 
     def plot_relative_sed(
         self,
