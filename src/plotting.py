@@ -157,7 +157,7 @@ def plot_histogram(
     # Print fit results as the title.
     title = (
         f"{wavelength_str}{": " if wavelength_str!="" else ""}"
-        f"{long_param_str} = {"(" if param_unit_str!="" else ""}{median:.2}"
+        f"{short_param_str} = {"(" if param_unit_str!="" else ""}{median:.2}"
         + f" + {plus_uncertainty:.1} - {minus_uncertainty:.1}"
         + f"{")" if param_unit_str!="" else ""}{param_unit_str}"
     )
