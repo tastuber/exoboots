@@ -636,6 +636,12 @@ def get_short_param_str(param_descr: str) -> str:
         short_param_str = "a"
     elif param_descr == "FWHM":
         short_param_str = "FWHM"
+    elif param_descr == "f_ptsrc":
+        short_param_str = "f_ptsrc"
+    elif param_descr == "alpha_ptsrc":
+        short_param_str = "alpha_ptsrc"
+    elif param_descr == "beta_ptsrc":
+        short_param_str = "beta_ptsrc"
 
     return short_param_str
 
@@ -658,6 +664,12 @@ def get_long_param_str(param_descr: str) -> str:
         long_param_str = "linear limb-darkened parameter a"
     elif param_descr == "FWHM":
         long_param_str = "Gaussian FWHM"
+    elif param_descr == "f_ptsrc":
+        long_param_str = "f point source"
+    elif param_descr == "alpha_ptsrc":
+        long_param_str = "alpha pointsource"
+    elif param_descr == "beta_ptsrc":
+        long_param_str = "beta point source"
 
     return long_param_str
 
@@ -674,13 +686,15 @@ def get_var_unit_str(var_descr: str) -> str:
 
     if var_descr == "wavelength":
         unit_str = "m"
-    elif var_descr == "f_cse":
-        unit_str = ""
     elif var_descr == "stellar_diameter":
         unit_str = "mas"
     elif var_descr == "lin_limb_dark_param":
         unit_str = ""
     elif var_descr == "FWHM":
+        unit_str = "mas"
+    elif var_descr == "alpha_ptsrc":
+        unit_str = "mas"
+    elif var_descr == "beta_ptsrc":
         unit_str = "mas"
     else:
         unit_str = ""
