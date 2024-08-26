@@ -284,7 +284,7 @@ class Bootstrapper():
             self.results[f"+Delta {varied_param}"] = param_error_plus
             self.results[f"-Delta {varied_param}"] = param_error_minus
 
-            if varied_param == "f":
+            if varied_param == "f_cse":
 
                 relative_sed[0] = mean_wavelength
                 relative_sed[1] = param_median
@@ -376,7 +376,7 @@ class Bootstrapper():
                 param_error_minus = param_results_error_minus[i_wave,
                                                               i_varied_param]
 
-                if varied_param == "f":
+                if varied_param == "f_cse":
 
                     relative_sed[0][i_wave] = wavelength
                     relative_sed[1][i_wave] = param_median

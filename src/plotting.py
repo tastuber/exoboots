@@ -628,8 +628,8 @@ def get_short_param_str(param_descr: str) -> str:
         short_param_str: The string to be used for the parameter.
     """
 
-    if param_descr == "f":
-        short_param_str = "f"
+    if param_descr == "f_cse":
+        short_param_str = "f_cse"
     elif param_descr == "stellar_diameter":
         short_param_str = "stellar diameter"
     elif param_descr == "lin_limb_dark_param":
@@ -650,8 +650,8 @@ def get_long_param_str(param_descr: str) -> str:
         long_param_str: The string to be used for the parameter.
     """
 
-    if param_descr == "f":
-        long_param_str = param_descr
+    if param_descr == "f_cse":
+        long_param_str = "f circumstellar environment"
     elif param_descr == "stellar_diameter":
         long_param_str = "stellar diameter"
     elif param_descr == "lin_limb_dark_param":
@@ -674,7 +674,7 @@ def get_var_unit_str(var_descr: str) -> str:
 
     if var_descr == "wavelength":
         unit_str = "m"
-    elif var_descr == "f":
+    elif var_descr == "f_cse":
         unit_str = ""
     elif var_descr == "stellar_diameter":
         unit_str = "mas"

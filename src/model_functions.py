@@ -7,7 +7,7 @@ from data_handling import comp_spatial_frequency
 def comp_VIS2_limbDarkDisk_overresolved(
     u_spatial_frequency: "Scalar or array (float)",
     v_spatial_frequency: "Scalar or array (float)",
-    f: float,
+    f_cse: float,
     stellar_diameter: float,
     lin_limb_dark_param: float,
 ) -> "Scalar or array (float)":
@@ -22,7 +22,7 @@ def comp_VIS2_limbDarkDisk_overresolved(
     """
 
     VIS2 = comp_VISAMP_limbDarkDisk_overresolved(
-        u_spatial_frequency, v_spatial_frequency, f, stellar_diameter,
+        u_spatial_frequency, v_spatial_frequency, f_cse, stellar_diameter,
         lin_limb_dark_param
     )**2
 
@@ -31,7 +31,7 @@ def comp_VIS2_limbDarkDisk_overresolved(
 def comp_VISAMP_limbDarkDisk_overresolved(
     u_spatial_frequency: "Scalar or array (float)",
     v_spatial_frequency: "Scalar or array (float)",
-    f: float,
+    f_cse: float,
     stellar_diameter: float,
     lin_limb_dark_param: float
 ) -> "Scalar or array (float)":
@@ -43,8 +43,9 @@ def comp_VISAMP_limbDarkDisk_overresolved(
     Args:
         u_spatial_frequency: Spatial frequency along u axis in units of 1/rad.
         v_spatial_frequency: Spatial frequency along v axis in units of 1/rad.
-        f: The ratio of the flux of the overresolved component and the total
-          flux (star + overresolved component).
+        f_cse: The ratio of the flux of the overresolved component and the
+          total flux (star + overresolved component). CSE is short for
+          circumstellar environment.
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
           for a uniform disk without limb-darkening.
@@ -54,7 +55,7 @@ def comp_VISAMP_limbDarkDisk_overresolved(
     """
 
     VISAMP = (
-        (1.0-f) * comp_VISAMP_limbDarkDisk(
+        (1.0-f_cse) * comp_VISAMP_limbDarkDisk(
             u_spatial_frequency,
             v_spatial_frequency,
             stellar_diameter,
@@ -67,7 +68,7 @@ def comp_VISAMP_limbDarkDisk_overresolved(
 def comp_VIS2_limbDarkDisk_gauss(
     u_spatial_frequency: "Scalar or array (float)",
     v_spatial_frequency: "Scalar or array (float)",
-    f: float,
+    f_cse: float,
     stellar_diameter: float,
     lin_limb_dark_param: float,
     FWHM: float
@@ -83,7 +84,7 @@ def comp_VIS2_limbDarkDisk_gauss(
     """
 
     VIS2 = comp_VISAMP_limbDarkDisk_gauss(
-        u_spatial_frequency, v_spatial_frequency, f, stellar_diameter,
+        u_spatial_frequency, v_spatial_frequency, f_cse, stellar_diameter,
         lin_limb_dark_param, FWHM
     )**2
 
@@ -92,7 +93,7 @@ def comp_VIS2_limbDarkDisk_gauss(
 def comp_VISAMP_limbDarkDisk_gauss(
     u_spatial_frequency: "Scalar or array (float)",
     v_spatial_frequency: "Scalar or array (float)",
-    f: float,
+    f_cse: float,
     stellar_diameter: float,
     lin_limb_dark_param: float,
     FWHM: float
@@ -107,8 +108,8 @@ def comp_VISAMP_limbDarkDisk_gauss(
     Args:
         u_spatial_frequency: Spatial frequency along u axis in units of 1/rad.
         v_spatial_frequency: Spatial frequency along v axis in units of 1/rad.
-        f: The ratio of the flux of the Gaussian and the total flux (star +
-          Gaussian).
+        f_cse: The ratio of the flux of the Gaussian and the total flux (star +
+          Gaussian). CSE is short for circumstellar environment.
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
           for a uniform disk without limb-darkening.
@@ -119,10 +120,10 @@ def comp_VISAMP_limbDarkDisk_gauss(
     """
 
     VISAMP = (
-        f * comp_VISAMP_circGauss(u_spatial_frequency,
+        f_cse * comp_VISAMP_circGauss(u_spatial_frequency,
                                   v_spatial_frequency,
                                   FWHM)
-        + (1.0-f) * comp_VISAMP_limbDarkDisk(u_spatial_frequency,
+        + (1.0-f_cse) * comp_VISAMP_limbDarkDisk(u_spatial_frequency,
                                              v_spatial_frequency,
                                              stellar_diameter,
                                              lin_limb_dark_param)
