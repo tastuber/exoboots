@@ -233,7 +233,8 @@ def plot_vis_all_wavelengths(
     )
 
     # This is executed if the bootstrapping has been performed.
-    try:
+    if hasattr(bs, "results"):
+
         # Make dict containing only the varied params and its result to feed
         # the fit function.
         fitted_param = {
@@ -276,34 +277,34 @@ def plot_vis_all_wavelengths(
             f"Fixed parameters: {title_fixed_param_str}"
         )
 
-    # This is executed if the bootstrapping has not been performed.
-    except AttributeError:
+    # This is executed if the bootstrapping has not been performed, but the
+    # model has been set up.
+    elif hasattr(bs, "param_init_value"):
 
-        # This is executed if the model has been set up.
-        try:
-            func_data = bs.fit_func(
-                u_spatial_frequency_func, v_spatial_frequency_func,
-                **bs.param_init_value
+        func_data = bs.fit_func(
+            u_spatial_frequency_func, v_spatial_frequency_func,
+            **bs.param_init_value
+        )
+        func_label = "initial guess"
+
+        # Create string for title with the initial parameter values
+        # before fitting.
+        title_init_param_str = []
+        for param in bs.model.param_names:
+            title_init_param_str.append(
+                f"{get_short_param_str(param)} = "
+                f"{bs.param_init_value[param]} "
+                f"{get_var_unit_str(param)}"
             )
-            func_label = "initial guess"
+        title_init_param_str = ", ".join(title_init_param_str)
 
-            # Create string for title with the initial parameter values
-            # before fitting.
-            title_init_param_str = []
-            for param in bs.model.param_names:
-                title_init_param_str.append(
-                    f"{get_short_param_str(param)} = "
-                    f"{bs.param_init_value[param]} "
-                    f"{get_var_unit_str(param)}"
-                )
-            title_init_param_str = ", ".join(title_init_param_str)
+        title = f"Initial parameters: {title_init_param_str}\n"
 
-            title = f"Initial parameters: {title_init_param_str}\n"
+    # This is executed if the model has not been set up.
+    else:
 
-        # This is executed if the model has not been set up.
-        except AttributeError:
-            func_data = None
-            func_label = None
+        func_data = None
+        func_label = None
 
     ##### Actual plotting.
     fig, ax = plt.subplots(figsize=figsize)
@@ -395,7 +396,8 @@ def plot_vis_for_fixed_wavelengths(
             )
 
             # This is executed if the bootstrapping has been performed.
-            try:
+            if hasattr(bs, "results"):
+
                 # Make dict containing only the varied params and its result to
                 # feed the fit function.
                 fitted_param = {
@@ -440,38 +442,38 @@ def plot_vis_for_fixed_wavelengths(
                     f"Fixed parameters: {title_fixed_param_str}"
                 )
 
-            # This is executed if the bootstrapping has not been performed.
-            except AttributeError:
+            # This is executed if the bootstrapping has not been performed, but
+            # the model has been set up.
+            elif hasattr(bs, "param_init_value"):
 
-                # This is executed if the model has been set up.
-                try:
-                    func_data = bs.fit_func(
-                        u_spatial_frequency_func, v_spatial_frequency_func,
-                        **bs.param_init_value
+                func_data = bs.fit_func(
+                    u_spatial_frequency_func, v_spatial_frequency_func,
+                    **bs.param_init_value
+                )
+                func_label = "initial guess"
+
+                # Create string for title with the initial parameter values
+                # before fitting.
+                title_init_param_str = []
+                for param in bs.model.param_names:
+                    title_init_param_str.append(
+                        f"{get_short_param_str(param)} = "
+                        f"{bs.param_init_value[param]} "
+                        f"{get_var_unit_str(param)}"
                     )
-                    func_label = "initial guess"
+                title_init_param_str = ", ".join(title_init_param_str)
 
-                    # Create string for title with the initial parameter values
-                    # before fitting.
-                    title_init_param_str = []
-                    for param in bs.model.param_names:
-                        title_init_param_str.append(
-                            f"{get_short_param_str(param)} = "
-                            f"{bs.param_init_value[param]} "
-                            f"{get_var_unit_str(param)}"
-                        )
-                    title_init_param_str = ", ".join(title_init_param_str)
+                title = (
+                    f"Wavelength = {wavelength_str}\n"
+                    f"Initial parameters: {title_init_param_str}\n"
+                )
 
-                    title = (
-                        f"Wavelength = {wavelength_str}\n"
-                        f"Initial parameters: {title_init_param_str}\n"
-                    )
+            # This is executed if the model has not been set up.
+            else:
 
-                # This is executed if the model has not been set up.
-                except AttributeError:
-                    func_data = None
-                    func_label = None
-                    title = f"Wavelength = {wavelength_str}"
+                func_data = None
+                func_label = None
+                title = f"Wavelength = {wavelength_str}"
 
             ##### Actual plotting.
             fig, ax = plt.subplots(figsize=figsize)
