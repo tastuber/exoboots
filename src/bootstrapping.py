@@ -64,6 +64,7 @@ class Bootstrapper():
         # Select the analytic function for fitting.
         match self.model_selector:
             case 1:
+                self.model_is_polar_symmetric = True
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_func = \
                         model_functions.comp_VISAMP_limbDarkDisk_overresolved
@@ -75,6 +76,7 @@ class Bootstrapper():
                     self.fit_func_descr = \
                         "VIS2_limbDarkDisk_overresolved"
             case 2:
+                self.model_is_polar_symmetric = True
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_func = \
                         model_functions.comp_VISAMP_limbDarkDisk_gauss
@@ -85,6 +87,19 @@ class Bootstrapper():
                         model_functions.comp_VIS2_limbDarkDisk_gauss
                     self.fit_func_descr = \
                         "VIS2_limbDarkDisk_gauss"
+
+            case 3:
+                self.model_is_polar_symmetric = False
+                if fit_vis_or_vis2 == "VISAMP":
+                    self.fit_func = \
+                        model_functions.comp_VISAMP_limbDarkDisk_gauss_ptSrc
+                    self.fit_func_descr = \
+                        "VISAMP_limbDarkDisk_gauss_ptSrc"
+                elif fit_vis_or_vis2 == "VIS2":
+                    self.fit_func = \
+                        model_functions.comp_VISs_limbDarkDisk_gauss_ptSrc
+                    self.fit_func_descr = \
+                        "VIS2_limbDarkDisk_gauss_ptSrc"
 
         # Select how the data is bootstrapped.
         match self.bootstrap_selector:
