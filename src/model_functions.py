@@ -131,7 +131,7 @@ def comp_VISAMP_limbDarkDisk_gauss(
 
     return VISAMP
 
-def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
+def comp_VIS2_limbDarkDisk_gauss_ptSrc(
     u_spatial_frequency: "Scalar or array (float)",
     v_spatial_frequency: "Scalar or array (float)",
     stellar_diameter: float,
