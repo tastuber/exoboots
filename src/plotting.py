@@ -199,19 +199,37 @@ def plot_vis_all_wavelengths(
 
     wavelength_descr = "all_waves"
 
-    (data,
-     data_error,
-     _,
-     u_spatial_frequency_data,
-     v_spatial_frequency_data,
-     _) = bs.full_data_set.get_all_data_flattened()
+    # Get data for each individual baseline.
+    data_ls = []
+    data_error_ls = []
+    spatial_frequency_data_ls = []
+    baseline_id_ls = []
 
-    spatial_frequency_data = data_handling.comp_spatial_frequency(
-        u_spatial_frequency_data, v_spatial_frequency_data
-    )
+    baseline_ls = bs.full_data_set.get_all_baselines()
 
-    if not plot_data_uncertainty:
-        data_error = None
+    # Sort the lists after baselines with increasing baseline length and hence
+    # increasing spatial frequencies. This is to set the later order along
+    # which the data is plotted. This ensures that baselines with similar
+    # spatial frequencies and hence closely located data points in the plot
+    # get colors that are easy to distinguish from each other.
+    B_ls = [baseline.B for baseline in baseline_ls]
+    B_ls, baseline_ls = zip(*sorted(zip(B_ls, baseline_ls)))
+
+    for baseline in baseline_ls:
+        data_ls.append(baseline.data)
+        spatial_frequency_data_ls.append(
+            data_handling.comp_spatial_frequency(
+                baseline.u_spatial_frequency, baseline.v_spatial_frequency
+            )
+        )
+        if plot_data_uncertainty:
+            data_error_ls.append(baseline.data_error)
+        else:
+            data_error_ls.append(None)
+        baseline_id_ls.append(baseline.baseline_id)
+
+    spatial_frequency_data_min = np.asarray(spatial_frequency_data_ls).min()
+    spatial_frequency_data_max = np.asarray(spatial_frequency_data_ls).max()
 
     # Derive spatial frequencies for the analytic function to produce data
     # for plotting. This is only needed if a model is there.
@@ -225,35 +243,35 @@ def plot_vis_all_wavelengths(
     # each telescope pair (i.e., baseline).
     if hasattr(bs, "results") or hasattr(bs, "param_init_value"):
 
+        alpha = 0.65 #  transparent data to see better the analytic solution
+
         if bs.model_is_polar_symmetric:
 
             # Use the u coordinate to store the baseline spatial frequencies
-            # and set the v coordinate to zero.
-            # Extend the spatial frequencies by 5% into each direction for
-            # nicer plots.
+            # and set the v coordinate to zero. By doing this the following is
+            # possible: Extend the spatial frequencies by 5% into each
+            # direction for nicer plots.
             # Automatically, the spatial frequencies appear in increasing
             # order.
             u_spatial_frequency_func_ls = [
-                np.linspace(spatial_frequency_data.min() * 0.95,
-                            spatial_frequency_data.max() * 1.05,
+                np.linspace(spatial_frequency_data_min * 0.95,
+                            spatial_frequency_data_max * 1.05,
                             1000
                 )
             ]
             v_spatial_frequency_func_ls = [
                 np.zeros(len(u_spatial_frequency_func_ls[0]))
             ]
-            baseline_id_ls = [None]
+            func_color = "black"
 
         elif not bs.model_is_polar_symmetric:
 
             u_spatial_frequency_func_ls = []
             v_spatial_frequency_func_ls = []
-            baseline_id_ls = []
-            for baseline in bs.full_data_set.get_all_baselines():
+            for baseline in baseline_ls:
 
                 u_spatial_frequency = baseline.u_spatial_frequency
                 v_spatial_frequency = baseline.v_spatial_frequency
-                baseline_id_ls.append(baseline.baseline_id)
                 # Increase the sampling for smoother plots. Do not use min/max,
                 # as for negative spatial frequencies only the absolute
                 # increases.
@@ -271,6 +289,8 @@ def plot_vis_all_wavelengths(
                 u_spatial_frequency_func_ls.append(u_spatial_frequency_func)
                 v_spatial_frequency_func_ls.append(v_spatial_frequency_func)
 
+                func_color = None
+
     # Compute the data of the model if it is already set up. If it is set
     # up, but the bootstrapping has not been performed, plot the model with
     # the initial values. If the bootstrapping has been performed, plot the
@@ -285,9 +305,10 @@ def plot_vis_all_wavelengths(
             param: bs.results[param] for param in bs.varied_param_ls
         }
 
-        # Obtain data for the best fit model.
         data_func_ls = []
         label_ls = []
+        alpha = 0.65 #  transparent data to see better the analytic solution
+        data_label_ls = [None for i in range(len(baseline_id_ls))]
 
         for (u_spatial_frequency_func,
              v_spatial_frequency_func,
@@ -295,6 +316,7 @@ def plot_vis_all_wavelengths(
             u_spatial_frequency_func_ls, v_spatial_frequency_func_ls,
             baseline_id_ls
         ):
+            # Obtain data for the best fit model.
             data_func_ls.append(bs.fit_func(
                 u_spatial_frequency_func, v_spatial_frequency_func,
                 **bs.fixed_param, **fitted_param
@@ -339,9 +361,10 @@ def plot_vis_all_wavelengths(
     # model has been set up.
     elif hasattr(bs, "param_init_value"):
 
-        # Obtain data for the initial model.
         data_func_ls = []
         label_ls = []
+        alpha = 0.65 #  transparent data to see better the analytic solution
+        data_label_ls = [None for i in range(len(baseline_id_ls))]
 
         for (u_spatial_frequency_func,
              v_spatial_frequency_func,
@@ -349,6 +372,8 @@ def plot_vis_all_wavelengths(
             u_spatial_frequency_func_ls, v_spatial_frequency_func_ls,
             baseline_id_ls
         ):
+
+            # Obtain data for the initial model.
             data_func_ls.append(bs.fit_func(
                 u_spatial_frequency_func, v_spatial_frequency_func,
                 **bs.param_init_value
@@ -376,18 +401,32 @@ def plot_vis_all_wavelengths(
     else:
 
         data_func_ls = None
+        alpha = 1.0 #  non transparent data
+        data_label_ls = baseline_id_ls
 
     ##### Actual plotting.
     fig, ax = plt.subplots(figsize=figsize)
 
-        ax.errorbar(spatial_frequency_data, data, yerr=data_error, fmt="x")
+    for spatial_frequency_data, data, data_error, data_label in zip(
+        spatial_frequency_data_ls, data_ls, data_error_ls, data_label_ls
+    ):
 
+        ax.errorbar(
+            spatial_frequency_data, data, yerr=data_error, fmt="x",
+            alpha=alpha, label=data_label
+        )
+
+    # Reset color cycle before plotting the analytical solutions to match the
+    # colors to the previous plots of data.
+    ax.set_prop_cycle(None)
+
+    # Plot analytical function if available.
     if np.any(data_func_ls):
 
         for (u_spatial_frequency_func,
-             v_spatial_frequency_func,
-             data_func,
-             label) in zip(
+            v_spatial_frequency_func,
+            data_func,
+            label) in zip(
             u_spatial_frequency_func_ls,
             v_spatial_frequency_func_ls,
             data_func_ls,
@@ -397,8 +436,12 @@ def plot_vis_all_wavelengths(
             spatial_frequency_func = data_handling.comp_spatial_frequency(
                 u_spatial_frequency_func, v_spatial_frequency_func
             )
-            ax.plot(spatial_frequency_func, data_func, label=label)
-            ax.legend()
+            ax.plot(
+                spatial_frequency_func, data_func, label=label, linewidth=2.5,
+                color=func_color
+            )
+
+    ax.legend()
 
     ax.set_xlabel("spatial frequency")
     ax.set_ylabel(
