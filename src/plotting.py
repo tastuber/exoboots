@@ -380,13 +380,7 @@ def plot_vis_all_wavelengths(
     ##### Actual plotting.
     fig, ax = plt.subplots(figsize=figsize)
 
-    ax.errorbar(spatial_frequency_data, data, yerr=data_error, fmt="x")
-
-    # # Order the model values from the analytic function with increasing
-    # # spatial frequency for plotting.
-    # index_array = np.argsort(spatial_frequency_func)
-    # spatial_frequency_func = spatial_frequency_func[index_array]
-    # data_func = data_func[index_array]
+        ax.errorbar(spatial_frequency_data, data, yerr=data_error, fmt="x")
 
     if np.any(data_func_ls):
 
