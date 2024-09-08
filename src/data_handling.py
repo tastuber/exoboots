@@ -144,8 +144,25 @@ def flag_wavelengths(oifits_obj: oifits.oifits, wave_min: float,
 
     return oifits_obj
 
-# TODO:
-# Write function mask_baselines()
+def sort_station_names(exclude_baselines_ls_ls: list[list[str]]):
+    """
+    Sort the two station names making up a baseline ID in alphabetical order
+
+    For instance, is the baseline id J4A0, it is changed into A0J4.
+
+    Args:
+        exclude_baselines_ls_ls: Nested list containining for each oifits file
+          the baselines to be flagged.
+    """
+
+    for i, exclude_baselines_ls in enumerate(exclude_baselines_ls_ls):
+
+        for j, baseline_id in enumerate(exclude_baselines_ls):
+
+            ls = [baseline_id[:2], baseline_id[2:]]
+            ls.sort()
+            new_baseline_id = "".join(ls)
+            exclude_baselines_ls_ls[i][j] = new_baseline_id
 
 def write_dict_to_txt(
         d: dict, file: str, path: str, header: str | None = None
@@ -366,6 +383,10 @@ class Full_data_set():
             exclude_baselines_ls_ls = [
                 [] for i in range(len(oifits_file_ls))
             ]
+        # Else sort the telescope pairs making up the baseline name in
+        # alphabetical order.
+        else:
+            sort_station_names(exclude_baselines_ls_ls)
 
         for (oifits_file, wave_min, wave_max, exclude_baselines_ls) in zip(
             oifits_file_ls, wave_min_ls, wave_max_ls, exclude_baselines_ls_ls
@@ -395,9 +416,6 @@ class Full_data_set():
                 oifits_obj, wave_min, wave_max, fit_vis_or_vis2
             )
 
-            # TODO:
-            # Mask baselines using exclude_baselines_ls
-
             # Loop trough the different data sets of the baselines Oifits file.
             # Create a Baseline object for each set and put everything into an
             # All_Baselines_per_File object.
@@ -416,9 +434,17 @@ class Full_data_set():
                 # Get the name of the baseline. Join the two telescope stations
                 # sorted alphabetically.
                 station_ls = [oifits_baseline.station[0].sta_name,
-                            oifits_baseline.station[1].sta_name]
+                              oifits_baseline.station[1].sta_name]
                 station_ls.sort()
                 baseline_id = "".join(station_ls)
+
+                # Skip baseline if it shall be excluded from analysis.
+                if len(exclude_baselines_ls) != 0:
+
+                    if baseline_id in exclude_baselines_ls:
+
+                        print(f"Exclude baseline: {baseline_id}")
+                        continue
 
                 # Select again on a deeper level VISAMP or VIS2.
                 # Then take the non masked values from each baseline and put
