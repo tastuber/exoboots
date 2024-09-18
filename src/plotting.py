@@ -441,12 +441,23 @@ def plot_vis_all_wavelengths(
                 color=func_color
             )
 
-    ax.legend()
+    fontsize_L = 20
+    fontsize_S = 16
 
-    ax.set_xlabel("spatial frequency")
+    ax.legend(fontsize=fontsize_S)
+
+    ax.set_xlabel("spatial frequency", fontsize=fontsize_L)
     ax.set_ylabel(
-        f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility"
+        f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility",
+        fontsize=fontsize_L
     )
+
+    ax.tick_params(axis='x', labelsize=fontsize_L)
+    ax.tick_params(axis='y', labelsize=fontsize_L)
+
+    # Set fontsize factor with the power of 10 from the scientific notation.
+    tx = ax.xaxis.get_offset_text()
+    tx.set_fontsize(fontsize_L)
 
     ax.set_title(title, loc="left")
 
