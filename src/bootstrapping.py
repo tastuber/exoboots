@@ -672,7 +672,7 @@ class Bootstrapper():
     def plot_data(
         self,
         plot_data_uncertainty: bool = True,
-        figsize: tuple[float, float] = (16, 8),
+        figsize: tuple[float, float] = (20, 12),
         save_fig: bool = True,
         save_fig_path: str | None = None,
         title: str = ""

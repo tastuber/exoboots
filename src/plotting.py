@@ -339,7 +339,7 @@ def plot_vis_all_wavelengths(
                 f" - {bs.results[f"-Delta {param}"]:.2}"
                 f") {get_var_unit_str(param)}".rstrip()
             )
-        title_varied_param_str = ", ".join(title_varied_param_str)
+        title_varied_param_str = "\n    ".join(title_varied_param_str)
 
         # Create string for title with the fixed parameter and their
         # values.
@@ -350,11 +350,11 @@ def plot_vis_all_wavelengths(
                 f" {bs.fixed_param[param]}"
                 f" {get_var_unit_str(param)}"
             )
-        title_fixed_param_str = ", ".join(title_fixed_param_str)
+        title_fixed_param_str = "\n    ".join(title_fixed_param_str)
 
         title = (
-            f"Fitted parameters: {title_varied_param_str}\n"
-            f"Fixed parameters: {title_fixed_param_str}"
+            f"Fitted parameters:\n    {title_varied_param_str}\n"
+            f"Fixed parameters:\n    {title_fixed_param_str}"
         )
 
     # This is executed if the bootstrapping has not been performed, but the
@@ -393,9 +393,9 @@ def plot_vis_all_wavelengths(
                 f"{bs.param_init_value[param]} "
                 f"{get_var_unit_str(param)}"
             )
-        title_init_param_str = ", ".join(title_init_param_str)
+        title_init_param_str = "\n    ".join(title_init_param_str)
 
-        title = f"Initial parameters: {title_init_param_str}\n"
+        title = f"Initial parameters:\n    {title_init_param_str}\n"
 
     # This is executed if the model has not been set up.
     else:
@@ -459,7 +459,7 @@ def plot_vis_all_wavelengths(
     tx = ax.xaxis.get_offset_text()
     tx.set_fontsize(fontsize_L)
 
-    ax.set_title(title, loc="left")
+    ax.set_title(title, loc="left", fontsize=fontsize_L)
 
     if save_fig:
         file_format = "pdf"
@@ -470,7 +470,8 @@ def plot_vis_all_wavelengths(
             wavelength_descr=wavelength_descr,
             file_format=file_format
         )
-        fig.savefig(save_fig_path+fig_name, format=file_format)
+        fig.savefig(save_fig_path+fig_name, format=file_format,
+                    bbox_inches='tight')
 
 def plot_vis_for_fixed_wavelengths(
         bs,
