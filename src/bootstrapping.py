@@ -675,14 +675,14 @@ class Bootstrapper():
         figsize: tuple[float, float] = (20, 12),
         save_fig: bool = True,
         save_fig_path: str | None = None,
-        title: str = ""
+        set_title: bool = True
     ):
 
         if not save_fig_path:
             save_fig_path = self.default_save_fig_path
 
         plotting.plot_vis(self, plot_data_uncertainty, figsize, save_fig,
-                          save_fig_path, title)
+                          save_fig_path, set_title)
 
     def plot_dust_sed(
         self,
@@ -690,7 +690,7 @@ class Bootstrapper():
         figsize: tuple[float, float] = (16, 8),
         save_fig: bool = True,
         save_fig_path: str | None = None,
-        title: str = ""
+        set_title: bool = True
     ):
 
         if not save_fig_path:
@@ -699,7 +699,7 @@ class Bootstrapper():
         try:
             plotting.plot_dust_sed(
                 self, plot_data_uncertainty, figsize, save_fig, save_fig_path,
-                self.wavelength_descr, title
+                self.wavelength_descr, set_title
             )
         except AttributeError:
             print("No dust SED has been computed yet.\n"

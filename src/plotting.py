@@ -178,15 +178,15 @@ def plot_histogram(
     return fig
 
 def plot_vis(bs, plot_data_uncertainty, figsize, save_fig, save_fig_path,
-             title):
+             set_title):
 
     match bs.bootstrap_selector:
         case 1 | 2 | 3:
             plot_vis_all_wavelengths(bs, plot_data_uncertainty, figsize,
-                                     save_fig, save_fig_path, title)
+                                     save_fig, save_fig_path, set_title)
         case 4:
             plot_vis_for_fixed_wavelengths(bs, plot_data_uncertainty, figsize,
-                                           save_fig, save_fig_path, title)
+                                           save_fig, save_fig_path, set_title)
 
 def plot_vis_all_wavelengths(
         bs,
@@ -194,7 +194,7 @@ def plot_vis_all_wavelengths(
         figsize,
         save_fig,
         save_fig_path,
-        title
+        set_title
 ):
 
     wavelength_descr = "all_waves"
@@ -403,6 +403,7 @@ def plot_vis_all_wavelengths(
         data_func_ls = None
         alpha = 1.0 #  non transparent data
         data_label_ls = baseline_id_ls
+        title = ""
 
     ##### Actual plotting.
     fig, ax = plt.subplots(figsize=figsize)
@@ -459,7 +460,8 @@ def plot_vis_all_wavelengths(
     tx = ax.xaxis.get_offset_text()
     tx.set_fontsize(fontsize_L)
 
-    ax.set_title(title, loc="left", fontsize=fontsize_L)
+    if set_title:
+        ax.set_title(title, loc="left", fontsize=fontsize_L)
 
     if save_fig:
         file_format = "pdf"
@@ -479,7 +481,7 @@ def plot_vis_for_fixed_wavelengths(
         figsize,
         save_fig,
         save_fig_path,
-        title
+        set_title
 ):
 
     wavelength_descr = "for_single_waves"
@@ -687,7 +689,8 @@ def plot_vis_for_fixed_wavelengths(
                 f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility"
             )
 
-            ax.set_title(title, loc="left")
+            if set_title:
+                ax.set_title(title, loc="left")
 
             pdf.savefig(fig)
 
