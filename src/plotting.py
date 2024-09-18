@@ -243,7 +243,7 @@ def plot_vis_all_wavelengths(
     # each telescope pair (i.e., baseline).
     if hasattr(bs, "results") or hasattr(bs, "param_init_value"):
 
-        alpha = 0.65 #  transparent data to see better the analytic solution
+        alpha = 0.7 #  transparent data to see better the analytic solution
 
         if bs.model_is_polar_symmetric:
 
@@ -307,7 +307,7 @@ def plot_vis_all_wavelengths(
 
         data_func_ls = []
         label_ls = []
-        alpha = 0.65 #  transparent data to see better the analytic solution
+        alpha = 0.7 #  transparent data to see better the analytic solution
         data_label_ls = [None for i in range(len(baseline_id_ls))]
 
         for (u_spatial_frequency_func,
@@ -363,7 +363,7 @@ def plot_vis_all_wavelengths(
 
         data_func_ls = []
         label_ls = []
-        alpha = 0.65 #  transparent data to see better the analytic solution
+        alpha = 0.7 #  transparent data to see better the analytic solution
         data_label_ls = [None for i in range(len(baseline_id_ls))]
 
         for (u_spatial_frequency_func,
@@ -414,7 +414,7 @@ def plot_vis_all_wavelengths(
 
         ax.errorbar(
             spatial_frequency_data, data, yerr=data_error, fmt="x",
-            alpha=alpha, label=data_label
+            markersize=10, markeredgewidth=2, alpha=alpha, label=data_label
         )
 
     # Reset color cycle before plotting the analytical solutions to match the
