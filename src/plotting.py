@@ -447,7 +447,7 @@ def plot_vis_all_wavelengths(
 
     ax.legend(fontsize=fontsize_S)
 
-    ax.set_xlabel("spatial frequency", fontsize=fontsize_L)
+    ax.set_xlabel("spatial frequency /rad\u207B\u00b9", fontsize=fontsize_L)
     ax.set_ylabel(
         f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility",
         fontsize=fontsize_L
@@ -684,7 +684,7 @@ def plot_vis_for_fixed_wavelengths(
                         label=func_label)
                     ax.legend()
 
-            ax.set_xlabel("spatial frequency")
+            ax.set_xlabel("spatial frequency /rad\u207B\u00b9")
             ax.set_ylabel(
                 f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility"
             )
