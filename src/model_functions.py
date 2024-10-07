@@ -241,11 +241,14 @@ def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
     A = 2.0 * np.pi * (u_spatial_frequency * alpha_ptsrc
                        + v_spatial_frequency * beta_ptsrc)
 
-    B = f_star*V_star + f_cse*V_gauss + f_ptsrc*V_ptsrc*np.cos(A)
+    B = (
+        (f_star*V_star)**2 + (f_cse*V_gauss)**2 + (f_ptsrc*V_ptsrc)**2
+        + 2*f_star*V_star*f_cse*V_gauss
+        + 2*f_star*V_star*f_ptsrc*V_ptsrc*np.cos(A)
+        + 2*f_cse*V_gauss*f_ptsrc*V_ptsrc*np.cos(A)
+    )**0.5
 
-    C = f_ptsrc * V_ptsrc * np.sin(A)
-
-    VISAMP = (1.0 / f_tot) * (B**2 + C**2)**0.5
+    VISAMP = B / f_tot
 
     return VISAMP
 
