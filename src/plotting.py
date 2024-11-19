@@ -857,20 +857,21 @@ def get_long_param_str(param_descr: str) -> str:
         long_param_str: The string to be used for the parameter.
     """
 
-    if param_descr == "f_cse":
-        long_param_str = "f circumstellar environment"
-    elif param_descr == "stellar_diameter":
-        long_param_str = "stellar diameter"
-    elif param_descr == "lin_limb_dark_param":
-        long_param_str = "linear limb-darkened parameter a"
-    elif param_descr == "FWHM":
-        long_param_str = "Gaussian FWHM"
-    elif param_descr == "f_ptsrc":
-        long_param_str = "f point source"
-    elif param_descr == "alpha_ptsrc":
-        long_param_str = "alpha pointsource"
+    # Parameters listed alphabetically.
+    if param_descr == "alpha_ptsrc":
+        long_param_str = "alpha point source"
     elif param_descr == "beta_ptsrc":
         long_param_str = "beta point source"
+    elif param_descr == "f_cse":
+        long_param_str = "f circumstellar environment"
+    elif param_descr == "f_ptsrc":
+        long_param_str = "f point source"
+    elif param_descr == "FWHM":
+        long_param_str = "Gaussian FWHM"
+    elif param_descr == "lin_limb_dark_param":
+        long_param_str = "linear limb-darkened parameter a"
+    elif param_descr == "stellar_diameter":
+        long_param_str = "stellar diameter"
 
     return long_param_str
 
