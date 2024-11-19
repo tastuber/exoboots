@@ -277,6 +277,12 @@ def comp_VISAMP_limbDarkDisk(
         VISAMP: The visibility amplitude.
     """
 
+    # In case of zero diameter, the disk is a point source which has a
+    # visibility of 1.0 for all spatial frequencies.
+    if stellar_diameter == 0.0:
+        VISAMP = np.ones(u_spatial_frequency.shape)
+        return VISAMP
+
     spatial_frequency = comp_spatial_frequency(
         u_spatial_frequency, v_spatial_frequency
     )
