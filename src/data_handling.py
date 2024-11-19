@@ -33,13 +33,13 @@ def read_settings(settings_file: str) -> (list, list, list, list):
       settings_file: Filename of the input file as str.
 
     Returns:
-      oifits_file_ls: List with the filenames of the Oifits files.
-      wave_min_ls: List containing for each Oifits file the minimum wavelengths
-        to be considered for analysis.
-      wave_max_ls: List containing for each Oifits file the maximum wavelengths
-        to be considered for analysis.
-      exclude_baselines_ls_ls: List containing for each Oifits file the
-        baselines to be excluded from analysis.
+        oifits_file_ls: List with the filenames of the Oifits files.
+          wave_min_ls: List containing for each Oifits file the minimum
+            wavelengths to be considered for analysis.
+        wave_max_ls: List containing for each Oifits file the maximum
+          wavelengths to be considered for analysis.
+        exclude_baselines_ls_ls: List containing for each Oifits file the
+          baselines to be excluded from analysis.
     """
 
     oifits_file_ls = []
@@ -210,16 +210,16 @@ class Baseline():
     Can be used for visibilities, squared visibilities, or closure phases.
 
     Attributes:
-      baseline_id: Alphabetically ordered, concatenated station names. E.g.,
-        A0B1 for the baseline between station A0 and B1 of the VLTI.
-      data: The actual values of the measured quantity, e.g., values of
-        visibility, squared visibility, or closure phase.
-      data_error: The uncertainty of the values of the data attribute.
-      wavelength: The wavelengths of the measurements.
-      ucoord: The u-coordinate in units of meter [m].
-      vcoord: The v-coordinate in units of meter [m].
-      B: The projected baseline length in units of meter [m].
-      spatial_frequency: The measured spatial frequencies. They are computed
+        baseline_id: Alphabetically ordered, concatenated station names. E.g.,
+          A0B1 for the baseline between station A0 and B1 of the VLTI.
+        data: The actual values of the measured quantity, e.g., values of
+          visibility, squared visibility, or closure phase.
+        data_error: The uncertainty of the values of the data attribute.
+        wavelength: The wavelengths of the measurements.
+        ucoord: The u-coordinate in units of meter [m].
+        vcoord: The v-coordinate in units of meter [m].
+        B: The projected baseline length in units of meter [m].
+        spatial_frequency: The measured spatial frequencies. They are computed
         via spatial_frequency = baseline/wavelength and have the unit [1/rad].
         To get the common representation (e.g., used by the JMMC tool
         Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one has to multiply with

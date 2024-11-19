@@ -80,7 +80,7 @@ def comp_VIS2_limbDarkDisk_gauss(
     information and Args the function comp_VISAMP_limbDarkDisk_gauss.
 
     Returns:
-      VIS2: The computed squared visibility as scalar or array.
+        VIS2: The computed squared visibility as scalar or array.
     """
 
     VIS2 = comp_VISAMP_limbDarkDisk_gauss(
@@ -149,7 +149,7 @@ def comp_VIS2_limbDarkDisk_gauss_ptSrc(
     information and Args the function def comp_VISAMP_limbDarkDisk_gauss_ptSrc.
 
     Returns:
-      VIS2: The computed squared visibility as scalar or array.
+        VIS2: The computed squared visibility as scalar or array.
     """
 
     VIS2 = comp_VISAMP_limbDarkDisk_gauss_ptSrc(
