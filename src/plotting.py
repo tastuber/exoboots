@@ -829,20 +829,14 @@ def get_short_param_str(param_descr: str) -> str:
         short_param_str: The string to be used for the parameter.
     """
 
-    if param_descr == "f_cse":
-        short_param_str = "f_cse"
+    # Parameters listed alphabetically. If parameter is not listed, the short
+    # representation defaults to the parameter name.
+    if param_descr == "lin_limb_dark_param":
+        short_param_str = "a"
     elif param_descr == "stellar_diameter":
         short_param_str = "stellar diameter"
-    elif param_descr == "lin_limb_dark_param":
-        short_param_str = "a"
-    elif param_descr == "FWHM":
-        short_param_str = "FWHM"
-    elif param_descr == "f_ptsrc":
-        short_param_str = "f_ptsrc"
-    elif param_descr == "alpha_ptsrc":
-        short_param_str = "alpha_ptsrc"
-    elif param_descr == "beta_ptsrc":
-        short_param_str = "beta_ptsrc"
+    else:
+        short_param_str = param_descr
 
     return short_param_str
 
