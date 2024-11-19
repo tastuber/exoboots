@@ -885,18 +885,18 @@ def get_var_unit_str(var_descr: str) -> str:
         unit_str: The string to be used for the parameter unit.
     """
 
-    if var_descr == "wavelength":
+    # Parameter names in lists sorted alphabetically.
+    if var_descr in [
+        "alpha_ptsrc", "beta_ptsrc", "FWHM", "stellar_diameter"
+    ]:
+        unit_str = "mas"
+
+    elif var_descr in ["wavelength"]:
         unit_str = "m"
-    elif var_descr == "stellar_diameter":
-        unit_str = "mas"
-    elif var_descr == "lin_limb_dark_param":
+
+    elif var_descr in ["lin_limb_dark_param"]:
         unit_str = ""
-    elif var_descr == "FWHM":
-        unit_str = "mas"
-    elif var_descr == "alpha_ptsrc":
-        unit_str = "mas"
-    elif var_descr == "beta_ptsrc":
-        unit_str = "mas"
+
     else:
         unit_str = ""
 
