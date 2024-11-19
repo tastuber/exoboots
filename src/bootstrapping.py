@@ -65,41 +65,37 @@ class Bootstrapper():
         match self.model_selector:
             case 1:
                 self.model_is_polar_symmetric = True
+                descriptor = "limbDarkDisk_overresolved"
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_func = \
                         model_functions.comp_VISAMP_limbDarkDisk_overresolved
-                    self.fit_func_descr = \
-                        "VISAMP_limbDarkDisk_overresolved"
+                    self.fit_func_descr = f"VISAMP_{descriptor}"
                 elif fit_vis_or_vis2 == "VIS2":
                     self.fit_func = \
                         model_functions.comp_VIS2_limbDarkDisk_overresolved
-                    self.fit_func_descr = \
-                        "VIS2_limbDarkDisk_overresolved"
+                    self.fit_func_descr = f"VIS2_{descriptor}"
             case 2:
                 self.model_is_polar_symmetric = True
+                descriptor = "limbDarkDisk_gauss"
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_func = \
                         model_functions.comp_VISAMP_limbDarkDisk_gauss
-                    self.fit_func_descr = \
-                        "VISAMP_limbDarkDisk_gauss"
+                    self.fit_func_descr = f"VISAMP_{descriptor}"
                 elif fit_vis_or_vis2 == "VIS2":
                     self.fit_func = \
                         model_functions.comp_VIS2_limbDarkDisk_gauss
-                    self.fit_func_descr = \
-                        "VIS2_limbDarkDisk_gauss"
-
+                    self.fit_func_descr = f"VIS2_{descriptor}"
             case 3:
                 self.model_is_polar_symmetric = False
+                descriptor = "limbDarkDisk_gauss_ptSrc"
                 if fit_vis_or_vis2 == "VISAMP":
                     self.fit_func = \
                         model_functions.comp_VISAMP_limbDarkDisk_gauss_ptSrc
-                    self.fit_func_descr = \
-                        "VISAMP_limbDarkDisk_gauss_ptSrc"
+                    self.fit_func_descr = f"VISAMP_{descriptor}"
                 elif fit_vis_or_vis2 == "VIS2":
                     self.fit_func = \
-                        model_functions.comp_VISs_limbDarkDisk_gauss_ptSrc
-                    self.fit_func_descr = \
-                        "VIS2_limbDarkDisk_gauss_ptSrc"
+                        model_functions.comp_VIS2_limbDarkDisk_gauss_ptSrc
+                    self.fit_func_descr = f"VIS2_{descriptor}"
 
         # Select how the data is bootstrapped.
         match self.bootstrap_selector:
