@@ -220,15 +220,15 @@ class Baseline():
         vcoord: The v-coordinate in units of meter [m].
         B: The projected baseline length in units of meter [m].
         spatial_frequency: The measured spatial frequencies. They are computed
-        via spatial_frequency = baseline/wavelength and have the unit [1/rad].
-        To get the common representation (e.g., used by the JMMC tool
-        Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one has to multiply with
-        1e-6.
-      u_spatial_frequency: Same as spatial_frequency, but only along the
-        u-axis.
-      v_spatial_frequency: Same as spatial_frequency, but only along the
-        v-axis.
-      weight: Weight of the data points for least-squares fitting.
+          via spatial_frequency = baseline/wavelength and have the unit
+          [1/rad]. To get the common representation (e.g., used by the JMMC
+          tool Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one has to
+          multiply with 1e-6.
+        u_spatial_frequency: Same as spatial_frequency, but only along the
+          u-axis.
+        v_spatial_frequency: Same as spatial_frequency, but only along the
+          v-axis.
+        weight: Weight of the data points for least-squares fitting.
     """
 
     def __init__(

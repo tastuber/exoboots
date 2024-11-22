@@ -831,7 +831,9 @@ def get_short_param_str(param_descr: str) -> str:
 
     # Parameters listed alphabetically. If parameter is not listed, the short
     # representation defaults to the parameter name.
-    if param_descr == "lin_limb_dark_param":
+    if param_descr == "diameter_UD":
+        short_param_str = "diameter UD"
+    elif param_descr == "lin_limb_dark_param":
         short_param_str = "a"
     elif param_descr == "stellar_diameter":
         short_param_str = "stellar diameter"
@@ -854,18 +856,37 @@ def get_long_param_str(param_descr: str) -> str:
     # Parameters listed alphabetically.
     if param_descr == "alpha_ptsrc":
         long_param_str = "alpha point source"
+    elif param_descr == "alpha_UD":
+        long_param_str = "alpha uniform disk"
     elif param_descr == "beta_ptsrc":
         long_param_str = "beta point source"
+    elif param_descr == "beta_UD":
+        long_param_str = "beta uniform disk"
+    elif param_descr == "diameter_UD":
+        long_param_str = "diameter uniform disk"
     elif param_descr == "f_cse":
         long_param_str = "f circumstellar environment"
     elif param_descr == "f_ptsrc":
         long_param_str = "f point source"
+    elif param_descr == "f_ring":
+        long_param_str = "f ring"
+    elif param_descr == "f_UD":
+        long_param_str = "f uniform disk"
     elif param_descr == "FWHM":
         long_param_str = "Gaussian FWHM"
     elif param_descr == "lin_limb_dark_param":
         long_param_str = "linear limb-darkened parameter a"
+    elif param_descr == "R_in":
+        long_param_str = "Inner ring radius"
     elif param_descr == "stellar_diameter":
         long_param_str = "stellar diameter"
+    elif param_descr == "width_scaling":
+        long_param_str = "width scaling"
+    else:
+        raise ValueError(
+            f"Parameter {param_descr} has no corresponding long string. Please"
+            " implement here."
+        )
 
     return long_param_str
 
@@ -882,7 +903,8 @@ def get_var_unit_str(var_descr: str) -> str:
 
     # Parameter names in lists sorted alphabetically.
     if var_descr in [
-        "alpha_ptsrc", "beta_ptsrc", "FWHM", "stellar_diameter"
+        "alpha_ptsrc", "alpha_UD", "beta_ptsrc", "beta_UD", "diameter", "FWHM",
+        "R_in", "stellar_diameter"
     ]:
         unit_str = "mas"
 
