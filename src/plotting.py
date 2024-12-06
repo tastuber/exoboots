@@ -212,8 +212,17 @@ def plot_vis_all_wavelengths(
     # which the data is plotted. This ensures that baselines with similar
     # spatial frequencies and hence closely located data points in the plot
     # get colors that are easy to distinguish from each other.
+    # The lambda function as key ensures that only the entries of B_ls are
+    # used for sorting. This is necessary to use two times the same Oifits,
+    # e.g., to select different wavelength intervals or give it more weight in
+    # the analysis. In this case the same baseline length appears twice in B_ls
+    # and the sorted function goes on to sort the Baseline objects in
+    # baseline_ls, which cannot be sorted.
     B_ls = [baseline.B for baseline in baseline_ls]
-    B_ls, baseline_ls = zip(*sorted(zip(B_ls, baseline_ls)))
+    B_tuple, baseline_tuple = zip(
+        *sorted(zip(B_ls, baseline_ls), key=lambda x: x[0])
+    )
+    baseline_ls = list(baseline_tuple)
 
     for baseline in baseline_ls:
         data_ls.append(baseline.data)
@@ -228,8 +237,8 @@ def plot_vis_all_wavelengths(
             data_error_ls.append(None)
         baseline_id_ls.append(baseline.baseline_id)
 
-    spatial_frequency_data_min = np.asarray(spatial_frequency_data_ls).min()
-    spatial_frequency_data_max = np.asarray(spatial_frequency_data_ls).max()
+    spatial_frequency_data_min = np.concatenate(spatial_frequency_data_ls).min()
+    spatial_frequency_data_max = np.concatenate(spatial_frequency_data_ls).max()
 
     # Derive spatial frequencies for the analytic function to produce data
     # for plotting. This is only needed if a model is there.
