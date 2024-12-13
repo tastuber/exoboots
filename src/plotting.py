@@ -721,17 +721,17 @@ def plot_relative_sed(
         # points at the same time.
         if type(bs.relative_sed["dust to star flux ratio"]) == np.float64:
             yerr = [
-                [bs.relative_sed["+Delta dust to star flux ratio"]],
-                [bs.relative_sed["-Delta dust to star flux ratio"]]
+                [bs.relative_sed["-Delta dust to star flux ratio"]],
+                [bs.relative_sed["+Delta dust to star flux ratio"]]
             ]
         else:
-            yerr = (bs.relative_sed["+Delta dust to star flux ratio"],
-                    bs.relative_sed["-Delta dust to star flux ratio"])
+            yerr = (bs.relative_sed["-Delta dust to star flux ratio"],
+                    bs.relative_sed["+Delta dust to star flux ratio"])
 
         ax.errorbar(
             x=bs.relative_sed["wavelength /m"],
             y=bs.relative_sed["dust to star flux ratio"],
-            yerr=yerr,
+            yerr=yerr, #  IMPORTANT: first lower error, second upper error.
             marker="x"
         )
 
@@ -784,17 +784,17 @@ def plot_dust_sed(
         # points at the same time.
         if type(bs.sed["dust flux /Jy"]) == np.float64:
             yerr = [
-                [bs.sed["+Delta dust flux /Jy"]],
-                [bs.sed["-Delta dust flux /Jy"]]
+                [bs.sed["-Delta dust flux /Jy"]],
+                [bs.sed["+Delta dust flux /Jy"]]
             ]
         else:
-            yerr = (bs.sed["+Delta dust flux /Jy"],
-                    bs.sed["-Delta dust flux /Jy"])
+            yerr = (bs.sed["-Delta dust flux /Jy"],
+                    bs.sed["+Delta dust flux /Jy"])
 
         ax.errorbar(
             x=bs.sed["wavelength /m"],
             y=bs.sed["dust flux /Jy"],
-            yerr=yerr,
+            yerr=yerr, #  IMPORTANT: first lower error, second upper error.
             marker="x"
         )
 
