@@ -703,7 +703,7 @@ def plot_vis_for_fixed_wavelengths(
 
             pdf.savefig(fig)
 
-def plot_relative_sed(
+def plot_relative_dust_sed(
         bs,
         plot_data_uncertainty,
         figsize,
