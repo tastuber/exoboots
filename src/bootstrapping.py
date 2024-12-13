@@ -501,10 +501,10 @@ class Bootstrapper():
 
         return self.sed
 
-    def save_relative_sed(self, save_sed_path: str = "../results/"):
+    def save_fit_results(self, save_path: str = "../results/"):
 
-        file_name = plotting.get_sed_file_name(
-            sed_descr="relative_SED",
+        file_name = plotting.get_results_file_name(
+            suffix="fit_results",
             fit_vis_or_vis2=self.fit_vis_or_vis2,
             sample_descr=self.sample_descr,
             fit_func_descr=self.fit_func_descr,
@@ -515,14 +515,32 @@ class Bootstrapper():
         # TODO: Write header with information about the fit settings.
         header = None
         data_handling.write_dict_to_txt(
-            d=self.relative_sed, file=file_name, path=save_sed_path,
+            d=self.results, file=file_name, path=save_path,
             header=header
         )
 
-    def save_dust_sed(self, save_sed_path: str = "../results/"):
+    def save_relative_sed(self, save_path: str = "../results/"):
 
-        file_name = plotting.get_sed_file_name(
-            sed_descr="SED",
+        file_name = plotting.get_results_file_name(
+            suffix="relative_sed",
+            fit_vis_or_vis2=self.fit_vis_or_vis2,
+            sample_descr=self.sample_descr,
+            fit_func_descr=self.fit_func_descr,
+            wavelength_descr=self.wavelength_descr,
+            file_format="txt"
+        )
+
+        # TODO: Write header with information about the fit settings.
+        header = None
+        data_handling.write_dict_to_txt(
+            d=self.relative_sed, file=file_name, path=save_path,
+            header=header
+        )
+
+    def save_dust_sed(self, save_path: str = "../results/"):
+
+        file_name = plotting.get_results_file_name(
+            suffix="dust_SED",
             fit_vis_or_vis2=self.fit_vis_or_vis2,
             sample_descr=self.sample_descr,
             fit_func_descr=self.fit_func_descr,
@@ -535,7 +553,7 @@ class Bootstrapper():
 
         try:
             data_handling.write_dict_to_txt(
-                d=self.sed, file=file_name, path=save_sed_path,
+                d=self.sed, file=file_name, path=save_path,
                 header=header
             )
         except AttributeError:

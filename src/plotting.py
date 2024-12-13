@@ -703,7 +703,7 @@ def plot_vis_for_fixed_wavelengths(
 
             pdf.savefig(fig)
 
-def plot_relative_dust_sed(
+def plot_relative_sed(
         bs,
         plot_data_uncertainty,
         figsize,
@@ -756,8 +756,8 @@ def plot_relative_dust_sed(
 
     if save_fig:
         file_format = "pdf"
-        fig_name = get_sed_file_name(
-            sed_descr="relative_SED",
+        fig_name = get_results_file_name(
+            suffix="relative_sed",
             fit_vis_or_vis2=bs.fit_vis_or_vis2,
             sample_descr=bs.sample_descr,
             fit_func_descr=bs.fit_func_descr,
@@ -817,8 +817,8 @@ def plot_dust_sed(
 
     if save_fig:
         file_format = "pdf"
-        fig_name = get_sed_file_name(
-            sed_descr="SED",
+        fig_name = get_results_file_name(
+            suffix="dust_SED",
             fit_vis_or_vis2=bs.fit_vis_or_vis2,
             sample_descr=bs.sample_descr,
             fit_func_descr=bs.fit_func_descr,
@@ -1008,15 +1008,15 @@ def get_vis_fig_name(
 
     return fig_name
 
-def get_sed_file_name(
-        sed_descr: str, fit_vis_or_vis2: str, sample_descr: str,
+def get_results_file_name(
+        suffix: str, fit_vis_or_vis2: str, sample_descr: str,
         fit_func_descr: str, wavelength_descr: str, file_format: str
 ):
     """
     Returns the file name for a SED for given fit parameter and settings.
 
     Args:
-        sed_descr: Descriptor of the table.
+        suffix: Suffix of the file name.
         sample_descr: Descriptor of the chosen sampling during
           bootstrapping, such as data points, baselines, observations or
           data points per wavelength.
@@ -1026,17 +1026,17 @@ def get_sed_file_name(
         file_format: The file format.
 
     Returns:
-        sed_name: The file name.
+        file_name: The file name.
     """
 
     # Remove the "VISAMP_" or "VIS2_" from fit_func_desc as it is present in
     # fit_vis_or_vis2 anyway.
     fit_func_descr = "_".join(fit_func_descr.split("_")[1:])
 
-    sed_name = (
-        f"{"_".join([sed_descr, fit_vis_or_vis2, sample_descr,
+    file_name = (
+        f"{"_".join([suffix, fit_vis_or_vis2, sample_descr,
                      fit_func_descr, wavelength_descr])}"
         f".{file_format}"
     )
 
-    return sed_name
+    return file_name
