@@ -174,7 +174,8 @@ def comp_VISAMP_limbDarkDisk_ring(
     """
     Compute vis. ampl. for limb darkened disk surrounded by a ring.
 
-    Formula computed by Berger & Segansan 2007, eq. 28.
+    Formula computed with by taking the absolut of the complex quantity given
+    by Berger & Segansan 2007, eq. 28.
     Both the star and the Gaussian are located in the center of the
     field-of-view. The flux of the star is fixed to 1.
 
@@ -184,7 +185,9 @@ def comp_VISAMP_limbDarkDisk_ring(
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
           for a uniform disk without limb-darkening.
-        f_ring: The flux of the ring in arbitrary units.
+        f_ring: The flux of the ring in arbitrary units. As the flux of the
+          star is fixed to 1, it is also the flux ratio of the ring to the
+          star.
         R_in: Inner ring radius in units of mas.
         width_scaling: Factor linking the outer ring radius R_out to the inner
           ring radius via R_out = width_scaling * R_in. Has to be strictly
@@ -270,8 +273,8 @@ def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
     general form for the visibility of a multicomponent model. The different
     components here are the visibility of a limb darkened star, a Gaussian, and
     a point source. Note that the visibility of a point source is 1 for all
-    spatial frequencies. From this eq. 28 which gives a complex quantity the
-    absolute has been computed to get the visibility amplitude.
+    spatial frequencies. Eq. 28 gives a complex quantity and the absolute has
+    been computed to get the visibility amplitude.
 
     Instead of the direction independent spatial frequency B/wavelength, the
     spatial frequencies along the u and v axes, i.e., u/wavelength and
@@ -284,12 +287,13 @@ def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
           for a uniform disk without limb-darkening.
-        f_cse: The ratio of the flux of the Gaussian and the total flux
-          (star + Gaussian + point source). CSE is short for circumstellar
-          environment.
+        f_cse:  The flux of the Gaussian circumstellar environment (CSE) in
+          arbitrary units. As the flux of the star is fixed to 1, it is also
+          the flux ratio of the Gaussian component to the star.
         FWHM: The FWHM of the circular Gaussian in units of mas.
-        f_ptsrc: The ratio of the flux of the point source and the total flux
-          (star + Gaussian + point source).
+        f_ptsrc: The flux of the point source in arbitrary units. As the flux
+          of the star is fixed to 1, it is also the flux ratio of the point
+          source to the star.
         alpha_ptsrc: The position of the point source on-sky along the u axis
           (North-South) in units of mas.
         beta_ptsrc: The position of the point source on-sky along the v axis
@@ -397,9 +401,8 @@ def comp_VISAMP_limbDarkDisk_ring_UD(
     The flux of the star is set to 1.
     The computation is based on Berger & Segansan 2007, eq. 28. That is the
     general form for the visibility of a multicomponent model. The different
-    components here are the visibility of a limb darkened star, a Gaussian, and
-    a point source. Note that the visibility of a point source is 1 for all
-    spatial frequencies. From this eq. 28 which gives a complex quantity the
+    components here are the visibility of a limb darkened star, a circumstellar
+    ring, and an off-axis uniform disk. Eq. 28 gives a complex quantity and the
     absolute has been computed to get the visibility amplitude.
 
     Instead of the direction independent spatial frequency B/wavelength, the
@@ -412,14 +415,16 @@ def comp_VISAMP_limbDarkDisk_ring_UD(
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
           for a uniform disk without limb-darkening.
-        f_ring: The ratio of the flux of the ring and the total flux
-          (star + Gaussian + point source).
+        f_ring: The flux of the ring in arbitrary units. As the flux of the
+          star is fixed to 1, it is also the flux ratio of the ring to the
+          star.
         R_in: Inner ring radius in units of mas.
         width_scaling: Factor linking the outer ring radius R_out to the inner
           ring radius via R_out = width_scaling * R_in. Has to be strictly
           larger than 1.0.
-        f_UD: The ratio of the flux of the uniform disk and the total flux
-          (star + Gaussian + uniform disk).
+        f_UD: The flux of the uniform disk in arbitrary units. As the flux of
+          the star is fixed to 1, it is also the flux ratio of the disk to the
+          star.
         diameter_UD: Diameter of the uniform disk in units of mas.
         alpha_UD: The position of the uniform disk on-sky along the u axis
           (North-South) in units of mas.
