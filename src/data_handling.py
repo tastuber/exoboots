@@ -357,6 +357,10 @@ class Full_data_set():
               different smallest wavelengths for different files.
             wave_max_ls: Same as wave_min_ls, but for the largest wavelengths
               considered.
+            path_to_data: System path to where the Oifits files are.
+            fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
+              treatment of visibilities (VISAMP) or squared visibilities
+              (VIS2).
             exclude_baselines_ls_ls: Nested list that contains a lists of
               baselines to be excluded from the analysis for every file in
               oifits_file_ls. The alphabetical order of the stations in the
@@ -365,18 +369,17 @@ class Full_data_set():
                Example: oifits_file_ls contains three files. We want to exclude
                 the baselines 'A0J3' and 'A4K2' in the second file and 'J3G2'
                 in the third file. Then set
-                exclude_baseline_ls = [[], [A0J3, A4K2], [J3G2]]
-            path_to_data: System path to where the Oifits files are.
-            fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
-              treatment of visibilities (VISAMP) or squared visibilities
-              (VIS2).
+                exclude_baseline_ls = [[], [A0J3, A4K2], [J3G2]].
+            unflag_all: Set to True to unflag all data before flagging again to
+              select the wavelengths interval. Use if data has been
+              accidentally flagged in the Oifits file during file creation.
 
         Raises:
             NoDataError: The chosen data, visibility or squared visibility, is
               not present in an input fits file.
         """
 
-        file_data_set_ls =[]
+        file_data_set_ls = []
 
         # Create empty lists in case no baselines shall be excluded.
         if exclude_baselines_ls_ls is None:
