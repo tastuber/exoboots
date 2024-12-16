@@ -882,8 +882,6 @@ def get_long_param_str(param_descr: str) -> str:
         long_param_str = "f circumstellar environment"
     elif param_descr == "f_ptsrc":
         long_param_str = "f point source"
-    elif param_descr == "f_ring":
-        long_param_str = "f ring"
     elif param_descr == "f_UD":
         long_param_str = "f uniform disk"
     elif param_descr == "FWHM":

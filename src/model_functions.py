@@ -136,7 +136,7 @@ def comp_VIS2_limbDarkDisk_ring(
     v_spatial_frequency: "Scalar or array (float)",
     stellar_diameter: float,
     lin_limb_dark_param: float,
-    f_ring: float,
+    f_cse: float,
     R_in: float,
     width_scaling: float
 ) -> "Scalar or array (float)":
@@ -155,7 +155,7 @@ def comp_VIS2_limbDarkDisk_ring(
         v_spatial_frequency=v_spatial_frequency,
         stellar_diameter=stellar_diameter,
         lin_limb_dark_param=lin_limb_dark_param,
-        f_ring=f_ring,
+        f_cse=f_cse,
         R_in=R_in,
         width_scaling=width_scaling
     )**2
@@ -167,7 +167,7 @@ def comp_VISAMP_limbDarkDisk_ring(
     v_spatial_frequency: "Scalar or array (float)",
     stellar_diameter: float,
     lin_limb_dark_param: float,
-    f_ring: float,
+    f_cse: float,
     R_in: float,
     width_scaling: float
 ) -> "Scalar or array (float)":
@@ -185,9 +185,9 @@ def comp_VISAMP_limbDarkDisk_ring(
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
           for a uniform disk without limb-darkening.
-        f_ring: The flux of the ring in arbitrary units. As the flux of the
+        f_cse: The flux of the ring in arbitrary units. As the flux of the
           star is fixed to 1, it is also the flux ratio of the ring to the
-          star.
+          star. CSE is short for circumstellar environment.
         R_in: Inner ring radius in units of mas.
         width_scaling: Factor linking the outer ring radius R_out to the inner
           ring radius via R_out = width_scaling * R_in. Has to be strictly
@@ -198,7 +198,7 @@ def comp_VISAMP_limbDarkDisk_ring(
     """
 
     f_star = 1.0
-    f_tot = f_star + f_ring
+    f_tot = f_star + f_cse
 
     V_star = comp_VISAMP_limbDarkDisk(
         u_spatial_frequency=u_spatial_frequency,
@@ -214,7 +214,7 @@ def comp_VISAMP_limbDarkDisk_ring(
         width_scaling=width_scaling
     )
 
-    VISAMP = (1.0/f_tot) * (f_star*V_star + f_ring*V_ring)
+    VISAMP = (1.0/f_tot) * (f_star*V_star + f_cse*V_ring)
 
     return VISAMP
 
@@ -287,7 +287,7 @@ def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
           for a uniform disk without limb-darkening.
-        f_cse:  The flux of the Gaussian circumstellar environment (CSE) in
+        f_cse: The flux of the Gaussian circumstellar environment (CSE) in
           arbitrary units. As the flux of the star is fixed to 1, it is also
           the flux ratio of the Gaussian component to the star.
         FWHM: The FWHM of the circular Gaussian in units of mas.
@@ -344,7 +344,7 @@ def comp_VIS2_limbDarkDisk_ring_UD(
     v_spatial_frequency: "Scalar or array (float)",
     stellar_diameter: float,
     lin_limb_dark_param: float,
-    f_ring: float,
+    f_cse: float,
     R_in: float,
     width_scaling: float,
     f_UD: float,
@@ -367,7 +367,7 @@ def comp_VIS2_limbDarkDisk_ring_UD(
         v_spatial_frequency=v_spatial_frequency,
         stellar_diameter=stellar_diameter,
         lin_limb_dark_param=lin_limb_dark_param,
-        f_ring=f_ring,
+        f_cse=f_cse,
         R_in=R_in,
         width_scaling=width_scaling,
         f_UD=f_UD,
@@ -383,7 +383,7 @@ def comp_VISAMP_limbDarkDisk_ring_UD(
     v_spatial_frequency: "Scalar or array (float)",
     stellar_diameter: float,
     lin_limb_dark_param: float,
-    f_ring: float,
+    f_cse: float,
     R_in: float,
     width_scaling: float,
     f_UD: float,
@@ -415,9 +415,9 @@ def comp_VISAMP_limbDarkDisk_ring_UD(
         stellar_diameter: The stellar diameter in units of mas.
         lin_limb_dark_parameter: The linear limb-darkened parameter. Set 0.0
           for a uniform disk without limb-darkening.
-        f_ring: The flux of the ring in arbitrary units. As the flux of the
+        f_cse: The flux of the ring in arbitrary units. As the flux of the
           star is fixed to 1, it is also the flux ratio of the ring to the
-          star.
+          star. CSE is short for circumstellar environment.
         R_in: Inner ring radius in units of mas.
         width_scaling: Factor linking the outer ring radius R_out to the inner
           ring radius via R_out = width_scaling * R_in. Has to be strictly
@@ -440,7 +440,7 @@ def comp_VISAMP_limbDarkDisk_ring_UD(
     beta_UD = beta_UD * u.mas.to(u.rad)
 
     f_star = 1.0
-    f_tot = f_star + f_ring + f_UD
+    f_tot = f_star + f_cse + f_UD
 
     V_star = comp_VISAMP_limbDarkDisk(
         u_spatial_frequency=u_spatial_frequency,
@@ -467,10 +467,10 @@ def comp_VISAMP_limbDarkDisk_ring_UD(
                        + v_spatial_frequency * beta_UD)
 
     B = (
-        (f_star*V_star)**2 + (f_ring*V_ring)**2 + (f_UD*V_UD)**2
-        + 2*f_star*V_star*f_ring*V_ring
+        (f_star*V_star)**2 + (f_cse*V_ring)**2 + (f_UD*V_UD)**2
+        + 2*f_star*V_star*f_cse*V_ring
         + 2*f_star*V_star*f_UD*V_UD*np.cos(A)
-        + 2*f_ring*V_ring*f_UD*V_UD*np.cos(A)
+        + 2*f_cse*V_ring*f_UD*V_UD*np.cos(A)
     )**0.5
 
     VISAMP = B / f_tot
