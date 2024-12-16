@@ -493,215 +493,220 @@ def plot_vis_for_fixed_wavelengths(
         set_title
 ):
 
-    wavelength_descr = "for_single_waves"
-    pdf_name = get_vis_fig_name(
-            fit_vis_or_vis2=bs.fit_vis_or_vis2,
-            sample_descr=bs.sample_descr,
-            fit_func_descr=bs.fit_func_descr,
-            wavelength_descr=wavelength_descr,
-            file_format="pdf"
-    )
-
     # Make one pdf with each figure on one page.
-    with PdfPages(save_fig_path+pdf_name) as pdf:
+    if save_fig:
 
-        for i_wave in range(bs.N_wavelength):
+        wavelength_descr = "for_single_waves"
+        pdf_name = get_vis_fig_name(
+                fit_vis_or_vis2=bs.fit_vis_or_vis2,
+                sample_descr=bs.sample_descr,
+                fit_func_descr=bs.fit_func_descr,
+                wavelength_descr=wavelength_descr,
+                file_format="pdf"
+        )
+        pdf = PdfPages(save_fig_path+pdf_name)
 
-            ##### Precalculations.
-            wavelength = bs.wavelength_ls[i_wave]
-            wavelength_str = (
-                f"{wavelength*1e6:.4f} micron"
-            )
+    for i_wave in range(bs.N_wavelength):
 
-            u_spatial_frequency_data = (
-                bs.data_per_wavelength[i_wave].u_spatial_frequency
-            )
-            v_spatial_frequency_data = (
-                bs.data_per_wavelength[i_wave].v_spatial_frequency
-            )
-            spatial_frequency_data = (
-                bs.data_per_wavelength[i_wave].spatial_frequency
-            )
+        ##### Precalculations.
+        wavelength = bs.wavelength_ls[i_wave]
+        wavelength_str = (
+            f"{wavelength*1e6:.4f} micron"
+        )
 
-            data = bs.data_per_wavelength[i_wave].data
-            data_error = bs.data_per_wavelength[i_wave].data_error
-            if not plot_data_uncertainty:
-                data_error = None
+        u_spatial_frequency_data = (
+            bs.data_per_wavelength[i_wave].u_spatial_frequency
+        )
+        v_spatial_frequency_data = (
+            bs.data_per_wavelength[i_wave].v_spatial_frequency
+        )
+        spatial_frequency_data = (
+            bs.data_per_wavelength[i_wave].spatial_frequency
+        )
 
-            # Derive spatial frequencies for the analytic function to produce
-            # data for plotting. This is only needed if a model is there.
-            # A distinction is made between
-            # 1) polar symmetric models for which the differentiation between
-            #    telescope pairs and hence u/v spatial frequencies does not
-            #    matter.
-            # 2) non polar symmetric models.
-            # In case 1) one can plot one analytic curve for all baselines. In
-            # this case increase the sampling of the spatial frequencies for a
-            # smooth and continuous plot.
-            # In case 2) this is not possible as every baseline has a different
-            # analytical curve because the model has two independent variables
-            # the spatial frequency in both u and v direction).
-            # In this case 2) plot the fit results only as points.
-            if hasattr(bs, "results") or hasattr(bs, "param_init_value"):
+        data = bs.data_per_wavelength[i_wave].data
+        data_error = bs.data_per_wavelength[i_wave].data_error
+        if not plot_data_uncertainty:
+            data_error = None
 
-                if bs.model_is_polar_symmetric:
-
-                    # Use the u coordinate to store the baseline spatial
-                    # frequencies and set the v coordinate to zero.
-                    # Extend the spatial frequencies by 5% into each direction
-                    # for nicer plots.
-                    # Automatically, the spatial frequencies appear in
-                    # increasing order.
-                    u_spatial_frequency_func = (
-                        np.linspace(spatial_frequency_data.min() * 0.95,
-                                    spatial_frequency_data.max() * 1.05,
-                                    1000
-                        )
-                    )
-                    v_spatial_frequency_func = (
-                        np.zeros(len(u_spatial_frequency_func))
-                    )
-                    spatial_frequency_func = u_spatial_frequency_func
-
-                elif not bs.model_is_polar_symmetric:
-
-                    pass
-
-            # Compute the data of the model if it is already set up. If it is
-            # set up, but the bootstrapping has not been performed, plot the
-            # model with the initial values. If the bootstrapping has been
-            # performed, plot the model with the best fit parameters.
-
-            # This is executed if the bootstrapping has been performed.
-            if hasattr(bs, "results"):
-
-                # Make dict containing only the varied params and its result to
-                # feed the fit function.
-                fitted_param = {
-                    param: bs.results[param][i_wave] \
-                    for param in bs.varied_param_ls
-                }
-                # Obtain data for the best fit model.
-                if bs.model_is_polar_symmetric:
-                    data_func = bs.fit_func(
-                        u_spatial_frequency_func, v_spatial_frequency_func,
-                        **bs.fixed_param, **fitted_param
-                    )
-
-                elif not bs.model_is_polar_symmetric:
-                    data_func = bs.fit_func(
-                        u_spatial_frequency_data, v_spatial_frequency_data,
-                        **bs.fixed_param, **fitted_param
-                    )
-
-                func_label = "result"
-
-                # Create string for title with the varied parameter and their
-                # fit results.
-                title_varied_param_str = []
-                for param in bs.varied_param_ls:
-
-                    title_varied_param_str.append(
-                        f"{get_short_param_str(param)} = ("
-                        f"{bs.results[param][i_wave]:.2}"
-                        f" + {bs.results[f"+Delta {param}"][i_wave]:.2}"
-                        f" - {bs.results[f"-Delta {param}"][i_wave]:.2}"
-                        f") {get_var_unit_str(param)}".rstrip()
-                    )
-                title_varied_param_str = ", ".join(title_varied_param_str)
-
-                # Create string for title with the fixed parameter and their
-                # values.
-                title_fixed_param_str = []
-                for param in bs.fixed_param:
-                    title_fixed_param_str.append(
-                        f"{get_short_param_str(param)} ="
-                        f" {bs.fixed_param[param]}"
-                        f" {get_var_unit_str(param)}"
-                    )
-                title_fixed_param_str = ", ".join(title_fixed_param_str)
-
-                title = (
-                    f"Wavelength = {wavelength_str}\n"
-                    f"Fitted parameters: {title_varied_param_str}\n"
-                    f"Fixed parameters: {title_fixed_param_str}"
-                )
-
-            # This is executed if the bootstrapping has not been performed, but
-            # the model has been set up.
-            elif hasattr(bs, "param_init_value"):
-
-                if bs.model_is_polar_symmetric:
-                    data_func = bs.fit_func(
-                        u_spatial_frequency_func, v_spatial_frequency_func,
-                        **bs.param_init_value
-                )
-
-                elif not bs.model_is_polar_symmetric:
-
-                    data_func = bs.fit_func(
-                        u_spatial_frequency_data, v_spatial_frequency_data,
-                        **bs.param_init_value
-                    )
-
-                func_label = "initial guess"
-
-                # Create string for title with the initial parameter values
-                # before fitting.
-                title_init_param_str = []
-                for param in bs.model.param_names:
-                    title_init_param_str.append(
-                        f"{get_short_param_str(param)} = "
-                        f"{bs.param_init_value[param]} "
-                        f"{get_var_unit_str(param)}"
-                    )
-                title_init_param_str = ", ".join(title_init_param_str)
-
-                title = (
-                    f"Wavelength = {wavelength_str}\n"
-                    f"Initial parameters: {title_init_param_str}\n"
-                )
-
-            # This is executed if the model has not been set up.
-            else:
-
-                data_func = None
-                title = f"Wavelength = {wavelength_str}"
-
-            ##### Actual plotting.
-            fig, ax = plt.subplots(figsize=figsize)
-
-            ax.errorbar(spatial_frequency_data, data, yerr=data_error, fmt="x")
+        # Derive spatial frequencies for the analytic function to produce
+        # data for plotting. This is only needed if a model is there.
+        # A distinction is made between
+        # 1) polar symmetric models for which the differentiation between
+        #    telescope pairs and hence u/v spatial frequencies does not
+        #    matter.
+        # 2) non polar symmetric models.
+        # In case 1) one can plot one analytic curve for all baselines. In
+        # this case increase the sampling of the spatial frequencies for a
+        # smooth and continuous plot.
+        # In case 2) this is not possible as every baseline has a different
+        # analytical curve because the model has two independent variables
+        # the spatial frequency in both u and v direction).
+        # In this case 2) plot the fit results only as points.
+        if hasattr(bs, "results") or hasattr(bs, "param_init_value"):
 
             if bs.model_is_polar_symmetric:
 
-                if np.any(data_func):
-
-                    ax.plot(spatial_frequency_func, data_func, label=func_label)
-                    ax.legend()
+                # Use the u coordinate to store the baseline spatial
+                # frequencies and set the v coordinate to zero.
+                # Extend the spatial frequencies by 5% into each direction
+                # for nicer plots.
+                # Automatically, the spatial frequencies appear in
+                # increasing order.
+                u_spatial_frequency_func = (
+                    np.linspace(spatial_frequency_data.min() * 0.95,
+                                spatial_frequency_data.max() * 1.05,
+                                1000
+                    )
+                )
+                v_spatial_frequency_func = (
+                    np.zeros(len(u_spatial_frequency_func))
+                )
+                spatial_frequency_func = u_spatial_frequency_func
 
             elif not bs.model_is_polar_symmetric:
 
-                if np.any(data_func):
+                pass
 
-                    ax.scatter(
-                        spatial_frequency_data,
-                        data_func,
-                        marker="X",
-                        s=106, #  markersize
-                        color="red",
-                        label=func_label)
-                    ax.legend()
+        # Compute the data of the model if it is already set up. If it is
+        # set up, but the bootstrapping has not been performed, plot the
+        # model with the initial values. If the bootstrapping has been
+        # performed, plot the model with the best fit parameters.
 
-            ax.set_xlabel("spatial frequency /rad\u207B\u00b9")
-            ax.set_ylabel(
-                f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility"
+        # This is executed if the bootstrapping has been performed.
+        if hasattr(bs, "results"):
+
+            # Make dict containing only the varied params and its result to
+            # feed the fit function.
+            fitted_param = {
+                param: bs.results[param][i_wave] \
+                for param in bs.varied_param_ls
+            }
+            # Obtain data for the best fit model.
+            if bs.model_is_polar_symmetric:
+                data_func = bs.fit_func(
+                    u_spatial_frequency_func, v_spatial_frequency_func,
+                    **bs.fixed_param, **fitted_param
+                )
+
+            elif not bs.model_is_polar_symmetric:
+                data_func = bs.fit_func(
+                    u_spatial_frequency_data, v_spatial_frequency_data,
+                    **bs.fixed_param, **fitted_param
+                )
+
+            func_label = "result"
+
+            # Create string for title with the varied parameter and their
+            # fit results.
+            title_varied_param_str = []
+            for param in bs.varied_param_ls:
+
+                title_varied_param_str.append(
+                    f"{get_short_param_str(param)} = ("
+                    f"{bs.results[param][i_wave]:.2}"
+                    f" + {bs.results[f"+Delta {param}"][i_wave]:.2}"
+                    f" - {bs.results[f"-Delta {param}"][i_wave]:.2}"
+                    f") {get_var_unit_str(param)}".rstrip()
+                )
+            title_varied_param_str = ", ".join(title_varied_param_str)
+
+            # Create string for title with the fixed parameter and their
+            # values.
+            title_fixed_param_str = []
+            for param in bs.fixed_param:
+                title_fixed_param_str.append(
+                    f"{get_short_param_str(param)} ="
+                    f" {bs.fixed_param[param]}"
+                    f" {get_var_unit_str(param)}"
+                )
+            title_fixed_param_str = ", ".join(title_fixed_param_str)
+
+            title = (
+                f"Wavelength = {wavelength_str}\n"
+                f"Fitted parameters: {title_varied_param_str}\n"
+                f"Fixed parameters: {title_fixed_param_str}"
             )
 
-            if set_title:
-                ax.set_title(title, loc="left")
+        # This is executed if the bootstrapping has not been performed, but
+        # the model has been set up.
+        elif hasattr(bs, "param_init_value"):
 
+            if bs.model_is_polar_symmetric:
+                data_func = bs.fit_func(
+                    u_spatial_frequency_func, v_spatial_frequency_func,
+                    **bs.param_init_value
+            )
+
+            elif not bs.model_is_polar_symmetric:
+
+                data_func = bs.fit_func(
+                    u_spatial_frequency_data, v_spatial_frequency_data,
+                    **bs.param_init_value
+                )
+
+            func_label = "initial guess"
+
+            # Create string for title with the initial parameter values
+            # before fitting.
+            title_init_param_str = []
+            for param in bs.model.param_names:
+                title_init_param_str.append(
+                    f"{get_short_param_str(param)} = "
+                    f"{bs.param_init_value[param]} "
+                    f"{get_var_unit_str(param)}"
+                )
+            title_init_param_str = ", ".join(title_init_param_str)
+
+            title = (
+                f"Wavelength = {wavelength_str}\n"
+                f"Initial parameters: {title_init_param_str}\n"
+            )
+
+        # This is executed if the model has not been set up.
+        else:
+
+            data_func = None
+            title = f"Wavelength = {wavelength_str}"
+
+        ##### Actual plotting.
+        fig, ax = plt.subplots(figsize=figsize)
+
+        ax.errorbar(spatial_frequency_data, data, yerr=data_error, fmt="x")
+
+        if bs.model_is_polar_symmetric:
+
+            if np.any(data_func):
+
+                ax.plot(spatial_frequency_func, data_func, label=func_label)
+                ax.legend()
+
+        elif not bs.model_is_polar_symmetric:
+
+            if np.any(data_func):
+
+                ax.scatter(
+                    spatial_frequency_data,
+                    data_func,
+                    marker="X",
+                    s=106, #  markersize
+                    color="red",
+                    label=func_label)
+                ax.legend()
+
+        ax.set_xlabel("spatial frequency /rad\u207B\u00b9")
+        ax.set_ylabel(
+            f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility"
+        )
+
+        if set_title:
+            ax.set_title(title, loc="left")
+
+        if save_fig:
             pdf.savefig(fig)
+
+    if save_fig:
+        pdf.close()
 
 def plot_relative_sed(
         bs,
