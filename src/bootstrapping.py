@@ -126,17 +126,20 @@ class Bootstrapper():
                 self.sample = self.sample_data_points
                 self.sample_descr = "sampled_data_points"
                 self.wavelength_descr = "all_waves"
+                self.do_bootstrapping = self.do_bootstrapping_all_wavelengths
             case 2:
                 # Sample the baselines, so treat all data for one baseline
                 # fully correlated.
                 self.sample = self.sample_baselines
                 self.sample_descr = "sampled_baselines"
                 self.wavelength_descr = "all_waves"
+                self.do_bootstrapping = self.do_bootstrapping_all_wavelengths
             case 3:
                 # Sample complete observations.
                 self.sample = self.sample_observations
                 self.sample_descr = "sampled_observations"
                 self.wavelength_descr = "all_waves"
+                self.do_bootstrapping = self.do_bootstrapping_all_wavelengths
             case 4:
                 # Fit for selected wavelengths the data points, i.e., sample
                 # for given wavelengths the baselines.
@@ -152,6 +155,8 @@ class Bootstrapper():
                     "sampled_baselines_for_fixed_wavelength"
                 )
                 self.wavelength_descr = "for_single_waves"
+                self.do_bootstrapping = \
+                    self.do_bootstrapping_for_fixed_wavelengths
 
     def setup_model(
             self, vary_param: dict[bool], param_init_value: dict[float],
@@ -242,18 +247,6 @@ class Bootstrapper():
             for param_name in self.model_params
             if not vary_param[param_name]
         }
-
-    # TODO: Move this function into the case selection in __init__(). Make
-    # the do_bootstrapping an attribute.
-    def do_bootstrapping(self):
-        """Perform the bootstrapping with the chosen settings."""
-
-        match self.bootstrap_selector:
-            case 1 | 2 | 3:
-                self.do_bootstrapping_all_wavelengths()
-
-            case 4:
-                self.do_bootstrapping_for_fixed_wavelengths()
 
     def do_bootstrapping_all_wavelengths(self):
         """Do one bootstrap fit for the full data set."""
