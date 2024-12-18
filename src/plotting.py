@@ -272,6 +272,7 @@ def plot_vis_all_wavelengths(
                 np.zeros(len(u_spatial_frequency_func_ls[0]))
             ]
             func_color = "black"
+            data_label_ls = baseline_id_ls
 
         elif not bs.model_is_polar_symmetric:
 
@@ -299,6 +300,7 @@ def plot_vis_all_wavelengths(
                 v_spatial_frequency_func_ls.append(v_spatial_frequency_func)
 
                 func_color = None
+                data_label_ls = [None for i in range(len(baseline_id_ls))]
 
     # Compute the data of the model if it is already set up. If it is set
     # up, but the bootstrapping has not been performed, plot the model with
@@ -317,14 +319,12 @@ def plot_vis_all_wavelengths(
         data_func_ls = []
         label_ls = []
         alpha = 0.7 #  transparent data to see better the analytic solution
-        data_label_ls = [None for i in range(len(baseline_id_ls))]
 
         for (u_spatial_frequency_func,
              v_spatial_frequency_func,
-             baseline_id,
-             data_label) in zip(
+             baseline_id) in zip(
             u_spatial_frequency_func_ls, v_spatial_frequency_func_ls,
-            baseline_id_ls, data_label_ls
+            baseline_id_ls
         ):
             # Obtain data for the best fit model.
             data_func_ls.append(bs.fit_func(
@@ -332,7 +332,7 @@ def plot_vis_all_wavelengths(
                 **bs.fixed_param, **fitted_param
                 )
             )
-            if data_label is None:
+            if bs.model_is_polar_symmetric:
                 label_ls.append("result")
             else:
                 label_ls.append(f"result: {baseline_id}")
@@ -383,14 +383,12 @@ def plot_vis_all_wavelengths(
         data_func_ls = []
         label_ls = []
         alpha = 0.7 #  transparent data to see better the analytic solution
-        data_label_ls = [None for i in range(len(baseline_id_ls))]
 
         for (u_spatial_frequency_func,
              v_spatial_frequency_func,
-             baseline_id,
-             data_label) in zip(
+             baseline_id) in zip(
             u_spatial_frequency_func_ls, v_spatial_frequency_func_ls,
-            baseline_id_ls, data_label_ls
+            baseline_id_ls
         ):
 
             # Obtain data for the initial model.
@@ -399,7 +397,7 @@ def plot_vis_all_wavelengths(
                 **bs.param_init_value
                 )
             )
-            if data_label is None:
+            if bs.model_is_polar_symmetric:
                 label_ls.append("initial guess")
             else:
                 label_ls.append(f"initial guess: {baseline_id}")
@@ -422,7 +420,7 @@ def plot_vis_all_wavelengths(
 
         data_func_ls = None
         alpha = 1.0 #  non transparent data
-        data_label_ls = baseline_id_ls
+        data_label_ls = baseline_id_ls #  label the data for any model
         title = ""
 
     ##### Actual plotting.
