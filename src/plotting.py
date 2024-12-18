@@ -361,9 +361,18 @@ def plot_vis_all_wavelengths(
             )
         title_fixed_param_str = "\n    ".join(title_fixed_param_str)
 
+        chi2 = bs.results["chi2"]
+        red_chi2 = bs.results["red_chi2"]
+        ndof = bs.results["ndof"]
+        title_chi2_str = (
+            f"weighted chi2 = {chi2:.2}, red. chi2 = {red_chi2:.2}, "
+            f"ndof = {ndof}"
+        )
+
         title = (
             f"Fitted parameters:\n    {title_varied_param_str}\n"
-            f"Fixed parameters:\n    {title_fixed_param_str}"
+            f"Fixed parameters:\n    {title_fixed_param_str}\n"
+            f"{title_chi2_str}"
         )
 
     # This is executed if the bootstrapping has not been performed, but the
@@ -576,7 +585,7 @@ def plot_vis_for_fixed_wavelengths(
         # This is executed if the bootstrapping has been performed.
         if hasattr(bs, "results"):
 
-            # Make dict containing only the varied params and its result to
+            # Make dict containing only the varied params and their results to
             # feed the fit function.
             fitted_param = {
                 param: bs.results[param][i_wave] \
@@ -622,10 +631,19 @@ def plot_vis_for_fixed_wavelengths(
                 )
             title_fixed_param_str = ", ".join(title_fixed_param_str)
 
+            chi2 = bs.results["chi2"][i_wave]
+            red_chi2 = bs.results["red_chi2"][i_wave]
+            ndof = bs.results["ndof"][i_wave]
+            title_chi2_str = (
+                f"weighted chi2 = {chi2:.2}, red. chi2 = {red_chi2:.2}, "
+                f"ndof = {ndof}"
+            )
+
             title = (
                 f"Wavelength = {wavelength_str}\n"
                 f"Fitted parameters: {title_varied_param_str}\n"
-                f"Fixed parameters: {title_fixed_param_str}"
+                f"Fixed parameters: {title_fixed_param_str}\n"
+                f"{title_chi2_str}"
             )
 
         # This is executed if the bootstrapping has not been performed, but

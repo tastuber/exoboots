@@ -326,6 +326,13 @@ class Bootstrapper():
                 "-Delta dust to star flux ratio": relative_sed[3]
             }
 
+        # Compute chi^2, reduced chi^2, and degreed of freedom and append it to
+        # results dictionary.
+        chi2, red_chi2, ndof = self.compute_chi2(ndof=None)
+        self.results["chi2"] = chi2
+        self.results["red_chi2"] = red_chi2
+        self.results["ndof"] = ndof
+
     def do_bootstrapping_for_fixed_wavelengths(self):
         """Do a bootstrap fit each wavelength."""
 
@@ -433,6 +440,102 @@ class Bootstrapper():
                 self.results[f"-Delta {varied_param}"] = (
                     param_results_error_minus[:, i_varied_param]
                 )
+
+        # Compute chi^2, reduced chi^2, and degreed of freedom and append it to
+        # results dictionary.
+        chi2_ls, red_chi2_ls, ndof_ls = self.compute_chi2(ndof=None)
+        self.results["chi2"] = chi2_ls
+        self.results["red_chi2"] = red_chi2_ls
+        self.results["ndof"] = ndof_ls
+
+    def compute_chi2(self, ndof: int | None = None) \
+        -> tuple[float, float, int] \
+            | tuple[list[float], list[float], list[int]]:
+        """
+        Compute weighted chi^2, the reduced chi2 and the degrees of freedom.
+
+        Compute the weighted chi2 as the sum of the ratio of the squared
+        difference of the model and the data, and the squared uncertainties.
+        The reduced chi2 is computed as the chi2 divided by the degrees of
+        freedom (ndof). If no specific ndof are given, compute it as the
+        number of data points minus the number of varied parameters.
+
+        If one fit to all wavelengths was done: Return tuple with the
+        weighted chi2, the reduced chi2, and the number of degrees of freedom.
+          If the data was fitted for each wavelength separately: Return tuple
+        with three lists with the weighted chi2, the reduced chi2, and the
+        number of degrees of freedom for each wavelength, respectively.
+
+        Args:
+            The number of degrees of freedom.
+
+        Returns:
+            chi2 | chi2_ls: The weighted chi2.
+            red_chi2 | red_chi2_ls: The reduced chi2.
+            ndof | ndof_ls: The number of degrees of freedom. Either computed
+              from the data or given by the input argument.
+        """
+
+        if self.do_bootstrapping == self.do_bootstrapping_all_wavelengths:
+
+            fitted_param = {
+                param: self.results[param] for param in self.varied_param_ls
+            }
+            (data, data_error, _,
+             u_spatial_frequency, v_spatial_frequency, _) = \
+                self.full_data_set.get_all_data_flattened()
+
+            data_func = self.fit_func(
+                u_spatial_frequency=u_spatial_frequency,
+                v_spatial_frequency=v_spatial_frequency,
+                **self.fixed_param,
+                **fitted_param
+            )
+            chi2 = np.sum(((data-data_func)/data_error)**2)
+
+            if not ndof:
+                ndof = len(data) - len(self.varied_param_ls)
+
+            red_chi2 = chi2 / ndof
+
+            return chi2, red_chi2, ndof
+
+        elif self.do_bootstrapping_for_fixed_wavelengths:
+
+            chi2_ls = []
+            red_chi2_ls = []
+            ndof_ls = []
+            for i_wave in range(self.N_wavelength):
+                fitted_param = {
+                    param: self.results[param][i_wave] \
+                    for param in self.varied_param_ls
+                }
+                data = self.data_per_wavelength[i_wave].data
+                data_error = self.data_per_wavelength[i_wave].data_error
+                u_spatial_frequency = (
+                    self.data_per_wavelength[i_wave].u_spatial_frequency
+                )
+                v_spatial_frequency = (
+                    self.data_per_wavelength[i_wave].v_spatial_frequency
+                )
+                data_func = self.fit_func(
+                    u_spatial_frequency=u_spatial_frequency,
+                    v_spatial_frequency=v_spatial_frequency,
+                    **self.fixed_param,
+                    **fitted_param
+                )
+
+                chi2 = np.sum(((data-data_func)/data_error)**2)
+                chi2_ls.append(chi2)
+
+                if not ndof:
+                    ndof = len(data) - len(self.varied_param_ls)
+
+                red_chi2_ls.append(chi2 / ndof)
+                ndof_ls.append(ndof)
+
+
+            return chi2_ls, red_chi2_ls, ndof_ls
 
     def compute_dust_sed(
             self, T_star: float, R_star: float, dist_star: float
