@@ -321,9 +321,10 @@ def plot_vis_all_wavelengths(
 
         for (u_spatial_frequency_func,
              v_spatial_frequency_func,
-             baseline_id) in zip(
+             baseline_id,
+             data_label) in zip(
             u_spatial_frequency_func_ls, v_spatial_frequency_func_ls,
-            baseline_id_ls
+            baseline_id_ls, data_label_ls
         ):
             # Obtain data for the best fit model.
             data_func_ls.append(bs.fit_func(
@@ -331,7 +332,7 @@ def plot_vis_all_wavelengths(
                 **bs.fixed_param, **fitted_param
                 )
             )
-            if baseline_id is None:
+            if data_label is None:
                 label_ls.append("result")
             else:
                 label_ls.append(f"result: {baseline_id}")
@@ -386,9 +387,10 @@ def plot_vis_all_wavelengths(
 
         for (u_spatial_frequency_func,
              v_spatial_frequency_func,
-             baseline_id) in zip(
+             baseline_id,
+             data_label) in zip(
             u_spatial_frequency_func_ls, v_spatial_frequency_func_ls,
-            baseline_id_ls
+            baseline_id_ls, data_label_ls
         ):
 
             # Obtain data for the initial model.
@@ -397,7 +399,7 @@ def plot_vis_all_wavelengths(
                 **bs.param_init_value
                 )
             )
-            if baseline_id is None:
+            if data_label is None:
                 label_ls.append("initial guess")
             else:
                 label_ls.append(f"initial guess: {baseline_id}")
