@@ -22,50 +22,6 @@ def comp_spatial_frequency(u_spatial_frequency, v_spatialfrequency):
 
     return spatial_frequency
 
-def read_settings(settings_file: str) -> (list, list, list, list):
-    """
-    Read the settings.txt file and put the data in lists.
-
-    Obtain the oifits filenames, the wavelength selection and the excluded
-    baselines.
-
-    Args:
-      settings_file: Filename of the input file as str.
-
-    Returns:
-        oifits_file_ls: List with the filenames of the Oifits files.
-          wave_min_ls: List containing for each Oifits file the minimum
-            wavelengths to be considered for analysis.
-        wave_max_ls: List containing for each Oifits file the maximum
-          wavelengths to be considered for analysis.
-        exclude_baselines_ls_ls: List containing for each Oifits file the
-          baselines to be excluded from analysis.
-    """
-
-    oifits_file_ls = []
-    wave_min_ls = []
-    wave_max_ls = []
-    exclude_baselines_ls_ls = []
-
-    with open(settings_file) as inp:
-        lines = inp.readlines()
-    for line in lines:
-        if line[0] == '#':
-            continue
-        else:
-            split = line.split()
-            n_col = len(split)
-            oifits_file_ls.append(split[0])
-            # Convert the input of micron to meter as in the Oifits.
-            wave_min_ls.append(float(split[1])*1e-6)
-            wave_max_ls.append(float(split[2])*1e-6)
-            if n_col > 3:
-                exclude_baselines_ls_ls.append(split[3:])
-            else:
-                exclude_baselines_ls_ls.append([])
-
-    return oifits_file_ls, wave_min_ls, wave_max_ls, exclude_baselines_ls_ls
-
 def unflag_all_wavelengths(oifits_obj: oifits.oifits,
                            fit_vis_or_vis2: str) -> oifits.oifits:
     """
