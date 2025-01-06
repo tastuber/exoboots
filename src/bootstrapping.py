@@ -535,7 +535,9 @@ class Bootstrapper():
                 ndof_per_wavelength.append(ndof)
 
 
-            return chi2_per_wavelength, red_chi2_per_wavelength, ndof_per_wavelength
+            return (chi2_per_wavelength,
+                    red_chi2_per_wavelength,
+                    ndof_per_wavelength)
 
     def compute_dust_sed(
             self, T_star: float, R_star: float, dist_star: float
@@ -611,8 +613,7 @@ class Bootstrapper():
         # TODO: Write header with information about the fit settings.
         header = None
         data_handling.write_dict_to_txt(
-            d=self.results, file=file_name, path=save_path,
-            header=header
+            d=self.results, file=file_name, path=save_path, header=header
         )
 
     def save_relative_sed(self, save_path: str = "../results/"):
@@ -629,8 +630,7 @@ class Bootstrapper():
         # TODO: Write header with information about the fit settings.
         header = None
         data_handling.write_dict_to_txt(
-            d=self.relative_sed, file=file_name, path=save_path,
-            header=header
+            d=self.relative_sed, file=file_name, path=save_path, header=header
         )
 
     def save_dust_sed(self, save_path: str = "../results/"):
@@ -649,8 +649,7 @@ class Bootstrapper():
 
         try:
             data_handling.write_dict_to_txt(
-                d=self.sed, file=file_name, path=save_path,
-                header=header
+                d=self.sed, file=file_name, path=save_path, header=header
             )
         except AttributeError:
             print("No dust SED has been computed yet.\n"
@@ -794,7 +793,7 @@ class Bootstrapper():
             save_fig_path = self.default_save_fig_path
 
         plotting.call_plot_histogram(
-            self,
+            bs=self,
             bins=bins,
             figsize=figsize,
             save_fig=save_fig,
@@ -813,8 +812,14 @@ class Bootstrapper():
         if not save_fig_path:
             save_fig_path = self.default_save_fig_path
 
-        plotting.plot_vis(self, plot_data_uncertainty, figsize, save_fig,
-                          save_fig_path, set_title)
+        plotting.plot_vis(
+            bs=self,
+            plot_data_uncertainty=plot_data_uncertainty,
+            figsize=figsize,
+            save_fig=save_fig,
+            save_fig_path=save_fig_path,
+            set_title=set_title
+        )
 
     def plot_dust_sed(
         self,
@@ -830,8 +835,13 @@ class Bootstrapper():
 
         try:
             plotting.plot_dust_sed(
-                self, plot_data_uncertainty, figsize, save_fig, save_fig_path,
-                self.wavelength_descr, title
+                bs=self,
+                plot_data_uncertainty=plot_data_uncertainty,
+                figsize=figsize,
+                save_fig=save_fig,
+                save_fig_path=save_fig_path,
+                wavelength_descr=self.wavelength_descr,
+                title=title
             )
         except AttributeError:
             print("No dust SED has been computed yet.\n"
@@ -851,6 +861,11 @@ class Bootstrapper():
             save_fig_path = self.default_save_fig_path
 
         plotting.plot_relative_sed(
-            self, plot_data_uncertainty, figsize, save_fig, save_fig_path,
-            self.wavelength_descr, title
+            bs=self,
+            plot_data_uncertainty=plot_data_uncertainty,
+            figsize=figsize,
+            save_fig=save_fig,
+            save_fig_path=save_fig_path,
+            wavelength_descr=self.wavelength_descr,
+            title=title
         )

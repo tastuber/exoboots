@@ -470,7 +470,8 @@ class Full_data_set():
 
     def bin_wavelengths(
         self, bins: int | list[int],
-        wave_bins_range: tuple[float, float] | list[tuple[float, float]] | None = None
+        wave_bins_range: tuple[float, float] | list[tuple[float, float]] \
+            | None = None
      ):
         """
         Bin data according to wavelengths using the mean.
