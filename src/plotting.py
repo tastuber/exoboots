@@ -13,7 +13,7 @@ def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
             wavelength_descr = "all_waves"
 
             for sampling_results, model_param_name in zip(
-                    bs.sampling_results, bs.varied_param_ls
+                    bs.sampling_results, bs.varied_params
                 ):
 
                 plot_histogram(
@@ -32,7 +32,7 @@ def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
 
             wavelength_descr = "for_single_waves"
 
-            for i_varied_param, model_param_name in enumerate(bs.varied_param_ls):
+            for i_varied_param, model_param_name in enumerate(bs.varied_params):
 
                 sampling_results_per_param = (
                     bs.sampling_results[:, i_varied_param, :]
@@ -44,10 +44,10 @@ def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
                 )
 
 
-                fig_ls = [] #  Create list of figures for saving
+                figs = [] #  Create list of figures for saving
                 for i_wave, sampling_results in enumerate(sampling_results_per_param):
 
-                    wavelength = bs.wavelength_ls[i_wave]
+                    wavelength = bs.wavelengths[i_wave]
                     wavelength_str = (
                         f"{wavelength*1e6:.4f} micron"
                     )
@@ -63,14 +63,14 @@ def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
                         save_fig=False,
                         save_fig_path=save_fig_path
                     )
-                    fig_ls.append(fig)
+                    figs.append(fig)
 
                 if save_fig:
 
                     # Make one pdf with each figure on one page.
                     with PdfPages(save_fig_path+pdf_name) as pdf:
 
-                        for fig in fig_ls:
+                        for fig in figs:
 
                             pdf.savefig(fig)
 
@@ -200,45 +200,45 @@ def plot_vis_all_wavelengths(
     wavelength_descr = "all_waves"
 
     # Get data for each individual baseline.
-    data_ls = []
-    data_error_ls = []
-    spatial_frequency_data_ls = []
-    baseline_id_ls = []
+    data_per_baseline = []
+    data_error_per_baseline = []
+    spfrq_data_per_baseline = []
+    baseline_ids = []
 
-    baseline_ls = bs.full_data_set.get_all_baselines()
+    baselines = bs.full_data_set.get_all_baselines()
 
-    # Sort the lists after baselines with increasing baseline length and hence
-    # increasing spatial frequencies. This is to set the later order along
-    # which the data is plotted. This ensures that baselines with similar
+    # Sort the lists after baselines with increasing baseline length (B) and
+    # hence increasing spatial frequencies. This is to set the later order
+    # along which the data is plotted. This ensures that baselines with similar
     # spatial frequencies and hence closely located data points in the plot
     # get colors that are easy to distinguish from each other.
-    # The lambda function as key ensures that only the entries of B_ls are
+    # The lambda function as key ensures that only the entries of Bs are
     # used for sorting. This is necessary to use two times the same Oifits,
     # e.g., to select different wavelength intervals or give it more weight in
-    # the analysis. In this case the same baseline length appears twice in B_ls
+    # the analysis. In this case the same baseline length appears twice in Bs
     # and the sorted function goes on to sort the Baseline objects in
-    # baseline_ls, which cannot be sorted.
-    B_ls = [baseline.B for baseline in baseline_ls]
-    B_tuple, baseline_tuple = zip(
-        *sorted(zip(B_ls, baseline_ls), key=lambda x: x[0])
+    # baselines, which cannot be sorted.
+    Bs = [baseline.B for baseline in baselines]
+    _, tmp_baselines = zip(
+        *sorted(zip(Bs, baselines), key=lambda x: x[0])
     )
-    baseline_ls = list(baseline_tuple)
+    baselines = list(tmp_baselines)
 
-    for baseline in baseline_ls:
-        data_ls.append(baseline.data)
-        spatial_frequency_data_ls.append(
-            data_handling.comp_spatial_frequency(
-                baseline.u_spatial_frequency, baseline.v_spatial_frequency
+    for baseline in baselines:
+        data_per_baseline.append(baseline.data)
+        spfrq_data_per_baseline.append(
+            data_handling.comp_spfrq(
+                baseline.u_spfrq, baseline.v_spfrq
             )
         )
         if plot_data_uncertainty:
-            data_error_ls.append(baseline.data_error)
+            data_error_per_baseline.append(baseline.data_error)
         else:
-            data_error_ls.append(None)
-        baseline_id_ls.append(baseline.baseline_id)
+            data_error_per_baseline.append(None)
+        baseline_ids.append(baseline.baseline_id)
 
-    spatial_frequency_data_min = np.concatenate(spatial_frequency_data_ls).min()
-    spatial_frequency_data_max = np.concatenate(spatial_frequency_data_ls).max()
+    min_spfrq_data = np.concatenate(spfrq_data_per_baseline).min()
+    max_spfrq_data = np.concatenate(spfrq_data_per_baseline).max()
 
     # Derive spatial frequencies for the analytic function to produce data
     # for plotting. This is only needed if a model is there.
@@ -262,45 +262,45 @@ def plot_vis_all_wavelengths(
             # direction for nicer plots.
             # Automatically, the spatial frequencies appear in increasing
             # order.
-            u_spatial_frequency_func_ls = [
-                np.linspace(spatial_frequency_data_min * 0.95,
-                            spatial_frequency_data_max * 1.05,
+            u_spfrq_per_baseline_func = [
+                np.linspace(min_spfrq_data * 0.95,
+                            max_spfrq_data * 1.05,
                             1000
                 )
             ]
-            v_spatial_frequency_func_ls = [
-                np.zeros(len(u_spatial_frequency_func_ls[0]))
+            v_spfrq_per_baseline_func = [
+                np.zeros(len(u_spfrq_per_baseline_func[0]))
             ]
             func_color = "black"
-            data_label_ls = baseline_id_ls
+            data_labels = baseline_ids
 
         elif not bs.model_is_polar_symmetric:
 
-            u_spatial_frequency_func_ls = []
-            v_spatial_frequency_func_ls = []
-            for baseline in baseline_ls:
+            u_spfrq_per_baseline_func = []
+            v_spfrq_per_baseline_func = []
+            for baseline in baselines:
 
-                u_spatial_frequency = baseline.u_spatial_frequency
-                v_spatial_frequency = baseline.v_spatial_frequency
+                u_spfrq = baseline.u_spfrq
+                v_spfrq = baseline.v_spfrq
                 # Increase the sampling for smoother plots. Do not use min/max,
                 # as for negative spatial frequencies only the absolute
                 # increases.
-                u_spatial_frequency_func = np.linspace(
-                    u_spatial_frequency[0],
-                    u_spatial_frequency[-1],
+                u_spfrq_func = np.linspace(
+                    u_spfrq[0],
+                    u_spfrq[-1],
                     100
                 )
-                v_spatial_frequency_func = np.linspace(
-                    v_spatial_frequency[0],
-                    v_spatial_frequency[-1],
+                v_spfrq_func = np.linspace(
+                    v_spfrq[0],
+                    v_spfrq[-1],
                     100
                 )
 
-                u_spatial_frequency_func_ls.append(u_spatial_frequency_func)
-                v_spatial_frequency_func_ls.append(v_spatial_frequency_func)
+                u_spfrq_per_baseline_func.append(u_spfrq_func)
+                v_spfrq_per_baseline_func.append(v_spfrq_func)
 
                 func_color = None
-                data_label_ls = [None for i in range(len(baseline_id_ls))]
+                data_labels = [None for i in range(len(baseline_ids))]
 
     # Compute the data of the model if it is already set up. If it is set
     # up, but the bootstrapping has not been performed, plot the model with
@@ -313,34 +313,34 @@ def plot_vis_all_wavelengths(
         # Make dict containing only the varied params and its result to feed
         # the fit function.
         fitted_param = {
-            param: bs.results[param] for param in bs.varied_param_ls
+            param: bs.results[param] for param in bs.varied_params
         }
 
-        data_func_ls = []
-        label_ls = []
+        data_per_baseline_func = []
+        labels = []
         alpha = 0.7 #  transparent data to see better the analytic solution
 
-        for (u_spatial_frequency_func,
-             v_spatial_frequency_func,
+        for (u_spfrq_func,
+             v_spfrq_func,
              baseline_id) in zip(
-            u_spatial_frequency_func_ls, v_spatial_frequency_func_ls,
-            baseline_id_ls
+            u_spfrq_per_baseline_func, v_spfrq_per_baseline_func,
+            baseline_ids
         ):
             # Obtain data for the best fit model.
-            data_func_ls.append(bs.fit_func(
-                u_spatial_frequency_func, v_spatial_frequency_func,
+            data_per_baseline_func.append(bs.fit_func(
+                u_spfrq_func, v_spfrq_func,
                 **bs.fixed_param, **fitted_param
                 )
             )
             if bs.model_is_polar_symmetric:
-                label_ls.append("result")
+                labels.append("result")
             else:
-                label_ls.append(f"result: {baseline_id}")
+                labels.append(f"result: {baseline_id}")
 
         # Create string for title with the varied parameter and their
         # fit results.
         title_varied_param_str = []
-        for param in bs.varied_param_ls:
+        for param in bs.varied_params:
 
             title_varied_param_str.append(
                 f"{get_short_param_str(param)} = ("
@@ -380,27 +380,27 @@ def plot_vis_all_wavelengths(
     # model has been set up.
     elif hasattr(bs, "param_init_value"):
 
-        data_func_ls = []
-        label_ls = []
+        data_per_baseline_func = []
+        labels = []
         alpha = 0.7 #  transparent data to see better the analytic solution
 
-        for (u_spatial_frequency_func,
-             v_spatial_frequency_func,
+        for (u_spfrq_func,
+             v_spfrq_func,
              baseline_id) in zip(
-            u_spatial_frequency_func_ls, v_spatial_frequency_func_ls,
-            baseline_id_ls
+            u_spfrq_per_baseline_func, v_spfrq_per_baseline_func,
+            baseline_ids
         ):
 
             # Obtain data for the initial model.
-            data_func_ls.append(bs.fit_func(
-                u_spatial_frequency_func, v_spatial_frequency_func,
+            data_per_baseline_func.append(bs.fit_func(
+                u_spfrq_func, v_spfrq_func,
                 **bs.param_init_value
                 )
             )
             if bs.model_is_polar_symmetric:
-                label_ls.append("initial guess")
+                labels.append("initial guess")
             else:
-                label_ls.append(f"initial guess: {baseline_id}")
+                labels.append(f"initial guess: {baseline_id}")
 
         # Create string for title with the initial parameter values
         # before fitting.
@@ -418,20 +418,20 @@ def plot_vis_all_wavelengths(
     # This is executed if the model has not been set up.
     else:
 
-        data_func_ls = None
+        data_per_baseline_func = None
         alpha = 1.0 #  non transparent data
-        data_label_ls = baseline_id_ls #  label the data for any model
+        data_labels = baseline_ids #  label the data for any model
         title = ""
 
     ##### Actual plotting.
     fig, ax = plt.subplots(figsize=figsize)
 
-    for spatial_frequency_data, data, data_error, data_label in zip(
-        spatial_frequency_data_ls, data_ls, data_error_ls, data_label_ls
+    for spfrq_data, data, data_error, data_label in zip(
+        spfrq_data_per_baseline, data_per_baseline, data_error_per_baseline, data_labels
     ):
 
         ax.errorbar(
-            spatial_frequency_data, data, yerr=data_error, fmt="x",
+            spfrq_data, data, yerr=data_error, fmt="x",
             markersize=10, markeredgewidth=2, alpha=alpha, label=data_label
         )
 
@@ -440,23 +440,23 @@ def plot_vis_all_wavelengths(
     ax.set_prop_cycle(None)
 
     # Plot analytical function if available.
-    if np.any(data_func_ls):
+    if np.any(data_per_baseline_func):
 
-        for (u_spatial_frequency_func,
-            v_spatial_frequency_func,
+        for (u_spfrq_func,
+            v_spfrq_func,
             data_func,
             label) in zip(
-            u_spatial_frequency_func_ls,
-            v_spatial_frequency_func_ls,
-            data_func_ls,
-            label_ls
+            u_spfrq_per_baseline_func,
+            v_spfrq_per_baseline_func,
+            data_per_baseline_func,
+            labels
         ):
 
-            spatial_frequency_func = data_handling.comp_spatial_frequency(
-                u_spatial_frequency_func, v_spatial_frequency_func
+            spfrq_func = data_handling.comp_spfrq(
+                u_spfrq_func, v_spfrq_func
             )
             ax.plot(
-                spatial_frequency_func, data_func, label=label, linewidth=2.5,
+                spfrq_func, data_func, label=label, linewidth=2.5,
                 color=func_color
             )
 
@@ -518,19 +518,19 @@ def plot_vis_for_fixed_wavelengths(
     for i_wave in range(bs.N_wavelength):
 
         ##### Precalculations.
-        wavelength = bs.wavelength_ls[i_wave]
+        wavelength = bs.wavelengths[i_wave]
         wavelength_str = (
             f"{wavelength*1e6:.4f} micron"
         )
 
-        u_spatial_frequency_data = (
-            bs.data_per_wavelength[i_wave].u_spatial_frequency
+        u_spfrq_data = (
+            bs.data_per_wavelength[i_wave].u_spfrq
         )
-        v_spatial_frequency_data = (
-            bs.data_per_wavelength[i_wave].v_spatial_frequency
+        v_spfrq_data = (
+            bs.data_per_wavelength[i_wave].v_spfrq
         )
-        spatial_frequency_data = (
-            bs.data_per_wavelength[i_wave].spatial_frequency
+        spfrq_data = (
+            bs.data_per_wavelength[i_wave].spfrq
         )
 
         data = bs.data_per_wavelength[i_wave].data
@@ -562,16 +562,16 @@ def plot_vis_for_fixed_wavelengths(
                 # for nicer plots.
                 # Automatically, the spatial frequencies appear in
                 # increasing order.
-                u_spatial_frequency_func = (
-                    np.linspace(spatial_frequency_data.min() * 0.95,
-                                spatial_frequency_data.max() * 1.05,
+                u_spfrq_func = (
+                    np.linspace(spfrq_data.min() * 0.95,
+                                spfrq_data.max() * 1.05,
                                 1000
                     )
                 )
-                v_spatial_frequency_func = (
-                    np.zeros(len(u_spatial_frequency_func))
+                v_spfrq_func = (
+                    np.zeros(len(u_spfrq_func))
                 )
-                spatial_frequency_func = u_spatial_frequency_func
+                spfrq_func = u_spfrq_func
 
             elif not bs.model_is_polar_symmetric:
 
@@ -589,18 +589,18 @@ def plot_vis_for_fixed_wavelengths(
             # feed the fit function.
             fitted_param = {
                 param: bs.results[param][i_wave] \
-                for param in bs.varied_param_ls
+                for param in bs.varied_params
             }
             # Obtain data for the best fit model.
             if bs.model_is_polar_symmetric:
                 data_func = bs.fit_func(
-                    u_spatial_frequency_func, v_spatial_frequency_func,
+                    u_spfrq_func, v_spfrq_func,
                     **bs.fixed_param, **fitted_param
                 )
 
             elif not bs.model_is_polar_symmetric:
                 data_func = bs.fit_func(
-                    u_spatial_frequency_data, v_spatial_frequency_data,
+                    u_spfrq_data, v_spfrq_data,
                     **bs.fixed_param, **fitted_param
                 )
 
@@ -609,7 +609,7 @@ def plot_vis_for_fixed_wavelengths(
             # Create string for title with the varied parameter and their
             # fit results.
             title_varied_param_str = []
-            for param in bs.varied_param_ls:
+            for param in bs.varied_params:
 
                 title_varied_param_str.append(
                     f"{get_short_param_str(param)} = ("
@@ -652,14 +652,14 @@ def plot_vis_for_fixed_wavelengths(
 
             if bs.model_is_polar_symmetric:
                 data_func = bs.fit_func(
-                    u_spatial_frequency_func, v_spatial_frequency_func,
+                    u_spfrq_func, v_spfrq_func,
                     **bs.param_init_value
             )
 
             elif not bs.model_is_polar_symmetric:
 
                 data_func = bs.fit_func(
-                    u_spatial_frequency_data, v_spatial_frequency_data,
+                    u_spfrq_data, v_spfrq_data,
                     **bs.param_init_value
                 )
 
@@ -690,13 +690,13 @@ def plot_vis_for_fixed_wavelengths(
         ##### Actual plotting.
         fig, ax = plt.subplots(figsize=figsize)
 
-        ax.errorbar(spatial_frequency_data, data, yerr=data_error, fmt="x")
+        ax.errorbar(spfrq_data, data, yerr=data_error, fmt="x")
 
         if bs.model_is_polar_symmetric:
 
             if np.any(data_func):
 
-                ax.plot(spatial_frequency_func, data_func, label=func_label)
+                ax.plot(spfrq_func, data_func, label=func_label)
                 ax.legend()
 
         elif not bs.model_is_polar_symmetric:
@@ -704,7 +704,7 @@ def plot_vis_for_fixed_wavelengths(
             if np.any(data_func):
 
                 ax.scatter(
-                    spatial_frequency_data,
+                    spfrq_data,
                     data_func,
                     marker="X",
                     s=106, #  markersize

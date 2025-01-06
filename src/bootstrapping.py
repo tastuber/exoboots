@@ -147,7 +147,7 @@ class Bootstrapper():
                     self.full_data_set.get_data_per_wavelength()
                 )
                 self.N_wavelength = len(self.data_per_wavelength)
-                self.wavelength_ls = [
+                self.wavelengths = [
                     self.data_per_wavelength[i].wavelength
                     for i in range(self.N_wavelength)
                 ]
@@ -186,7 +186,7 @@ class Bootstrapper():
 
         self.model = lmfit.Model(
             self.fit_func,
-            independent_vars=["u_spatial_frequency", "v_spatial_frequency"]
+            independent_vars=["u_spfrq", "v_spfrq"]
         )
 
         # If no parameter bounds are given, set them to -infinity, +infinitiy.
@@ -235,7 +235,7 @@ class Bootstrapper():
             )
 
         # Create list of the varied parameters.
-        self.varied_param_ls = [
+        self.varied_params = [
             param_name for param_name in self.model.param_names
             if vary_param[param_name]
         ]
@@ -266,16 +266,16 @@ class Bootstrapper():
         for i_sample in range(self.N_sample):
 
             (data, data_error, wavelength,
-             u_spatial_frequency, v_spatial_frequency, weight) = self.sample()
+             u_spfrq, v_spfrq, weight) = self.sample()
 
             result = self.model.fit(
                 data=data, params=self.model_params, weights=weight,
-                u_spatial_frequency=u_spatial_frequency,
-                v_spatial_frequency=v_spatial_frequency
+                u_spfrq=u_spfrq,
+                v_spfrq=v_spfrq
             )
 
             # Store the sampling results for the varied parameters.
-            for i_varied_param, param_name in enumerate(self.varied_param_ls):
+            for i_varied_param, param_name in enumerate(self.varied_params):
 
                 self.sampling_results[i_varied_param, i_sample] = (
                     result.best_values[param_name]
@@ -300,7 +300,7 @@ class Bootstrapper():
         _, _, tmp_wave, _, _, _ = self.full_data_set.get_all_data_flattened()
         mean_wavelength = np.mean(tmp_wave)
 
-        for i_varied_param, varied_param in enumerate(self.varied_param_ls):
+        for i_varied_param, varied_param in enumerate(self.varied_params):
 
             param_median = param_results_median[i_varied_param]
             param_error_plus = param_results_error_plus[i_varied_param]
@@ -360,22 +360,22 @@ class Bootstrapper():
 
         for i_wave in range(self.N_wavelength):
 
-            wavelength = self.wavelength_ls[i_wave]
+            wavelength = self.wavelengths[i_wave]
 
             for i_sample in range(self.N_sample):
 
-                (data, u_spatial_frequency, v_spatial_frequency, weight) = (
+                (data, u_spfrq, v_spfrq, weight) = (
                     self.sample_baselines_for_fixed_wavelength(i_wave)
                 )
 
                 result = self.model.fit(
                     data=data, params=self.model_params, weights=weight,
-                    u_spatial_frequency=u_spatial_frequency,
-                    v_spatial_frequency=v_spatial_frequency
+                    u_spfrq=u_spfrq,
+                    v_spfrq=v_spfrq
                 )
 
                 # Store the sampling results for the varied parameters.
-                for i_varied_param, param_name in enumerate(self.varied_param_ls):
+                for i_varied_param, param_name in enumerate(self.varied_params):
 
                     self.sampling_results[i_wave, i_varied_param, i_sample] = (
                         result.best_values[param_name]
@@ -399,7 +399,7 @@ class Bootstrapper():
                 f"{wavelength*1e6:.4f} micron"
             )
             for i_varied_param, varied_param in enumerate(
-                self.varied_param_ls
+                self.varied_params
             ):
 
                 param_median = param_results_median[i_wave,
@@ -426,9 +426,9 @@ class Bootstrapper():
                 }
 
         # Store final results in dictionary.
-        self.results["wavelength"] = self.wavelength_ls
+        self.results["wavelength"] = self.wavelengths
         for i_varied_param, varied_param in enumerate(
-                self.varied_param_ls
+                self.varied_params
             ):
 
                 self.results[varied_param] = (
@@ -443,10 +443,10 @@ class Bootstrapper():
 
         # Compute chi^2, reduced chi^2, and degreed of freedom and append it to
         # results dictionary.
-        chi2_ls, red_chi2_ls, ndof_ls = self.compute_chi2(ndof=None)
-        self.results["chi2"] = chi2_ls
-        self.results["red_chi2"] = red_chi2_ls
-        self.results["ndof"] = ndof_ls
+        chi2, red_chi2, ndof = self.compute_chi2(ndof=None)
+        self.results["chi2"] = chi2
+        self.results["red_chi2"] = red_chi2
+        self.results["ndof"] = ndof
 
     def compute_chi2(self, ndof: int | None = None) \
         -> tuple[float, float, int] \
@@ -470,31 +470,31 @@ class Bootstrapper():
             The number of degrees of freedom.
 
         Returns:
-            chi2 | chi2_ls: The weighted chi2.
-            red_chi2 | red_chi2_ls: The reduced chi2.
-            ndof | ndof_ls: The number of degrees of freedom. Either computed
+            chi2: The weighted chi2.
+            red_chi2: The reduced chi2.
+            ndof: The number of degrees of freedom. Either computed
               from the data or given by the input argument.
         """
 
         if self.do_bootstrapping == self.do_bootstrapping_all_wavelengths:
 
             fitted_param = {
-                param: self.results[param] for param in self.varied_param_ls
+                param: self.results[param] for param in self.varied_params
             }
             (data, data_error, _,
-             u_spatial_frequency, v_spatial_frequency, _) = \
+             u_spfrq, v_spfrq, _) = \
                 self.full_data_set.get_all_data_flattened()
 
             data_func = self.fit_func(
-                u_spatial_frequency=u_spatial_frequency,
-                v_spatial_frequency=v_spatial_frequency,
+                u_spfrq=u_spfrq,
+                v_spfrq=v_spfrq,
                 **self.fixed_param,
                 **fitted_param
             )
             chi2 = np.sum(((data-data_func)/data_error)**2)
 
             if not ndof:
-                ndof = len(data) - len(self.varied_param_ls)
+                ndof = len(data) - len(self.varied_params)
 
             red_chi2 = chi2 / ndof
 
@@ -502,40 +502,40 @@ class Bootstrapper():
 
         elif self.do_bootstrapping_for_fixed_wavelengths:
 
-            chi2_ls = []
-            red_chi2_ls = []
-            ndof_ls = []
+            chi2_per_wavelength = []
+            red_chi2_per_wavelength = []
+            ndof_per_wavelength = []
             for i_wave in range(self.N_wavelength):
                 fitted_param = {
                     param: self.results[param][i_wave] \
-                    for param in self.varied_param_ls
+                    for param in self.varied_params
                 }
                 data = self.data_per_wavelength[i_wave].data
                 data_error = self.data_per_wavelength[i_wave].data_error
-                u_spatial_frequency = (
-                    self.data_per_wavelength[i_wave].u_spatial_frequency
+                u_spfrq = (
+                    self.data_per_wavelength[i_wave].u_spfrq
                 )
-                v_spatial_frequency = (
-                    self.data_per_wavelength[i_wave].v_spatial_frequency
+                v_spfrq = (
+                    self.data_per_wavelength[i_wave].v_spfrq
                 )
                 data_func = self.fit_func(
-                    u_spatial_frequency=u_spatial_frequency,
-                    v_spatial_frequency=v_spatial_frequency,
+                    u_spfrq=u_spfrq,
+                    v_spfrq=v_spfrq,
                     **self.fixed_param,
                     **fitted_param
                 )
 
                 chi2 = np.sum(((data-data_func)/data_error)**2)
-                chi2_ls.append(chi2)
+                chi2_per_wavelength.append(chi2)
 
                 if not ndof:
-                    ndof = len(data) - len(self.varied_param_ls)
+                    ndof = len(data) - len(self.varied_params)
 
-                red_chi2_ls.append(chi2 / ndof)
-                ndof_ls.append(ndof)
+                red_chi2_per_wavelength.append(chi2 / ndof)
+                ndof_per_wavelength.append(ndof)
 
 
-            return chi2_ls, red_chi2_ls, ndof_ls
+            return chi2_per_wavelength, red_chi2_per_wavelength, ndof_per_wavelength
 
     def compute_dust_sed(
             self, T_star: float, R_star: float, dist_star: float
@@ -662,40 +662,40 @@ class Bootstrapper():
         (data,
          data_error,
          wavelength,
-         u_spatial_frequency,
-         v_spatial_frequency,
+         u_spfrq,
+         v_spfrq,
          weight) = self.resample_parallel(
             self.full_data_set.get_all_data_flattened()
         )
 
         return (
-            data, data_error, wavelength, u_spatial_frequency,
-            v_spatial_frequency, weight
+            data, data_error, wavelength, u_spfrq,
+            v_spfrq, weight
         )
 
     def sample_observations(self):
 
         full_data_set_tmp = data_handling.Full_data_set_from_list(
-            self.resample(self.full_data_set.file_data_set_ls)
+            self.resample(self.full_data_set.file_data_sets)
         )
 
-        data_tuple = full_data_set_tmp.get_all_data_flattened()
+        data = full_data_set_tmp.get_all_data_flattened()
 
-        return data_tuple
+        return data
 
     def sample_baselines(self):
 
-        baseline_ls = self.resample(self.full_data_set.get_all_baselines())
+        baselines = self.resample(self.full_data_set.get_all_baselines())
 
         # Utilize class All_Baselines_per_File to create a temporary
         # Full_data_set to flatten all data arrays.
         full_data_set_tmp = data_handling.Full_data_set_from_list(
             [data_handling.All_Baselines_per_File(file="all chosen files",
-                                   baseline_ls=baseline_ls)]
+                                                  baselines=baselines)]
         )
-        data_tuple = full_data_set_tmp.get_all_data_flattened()
+        data = full_data_set_tmp.get_all_data_flattened()
 
-        return data_tuple
+        return data
 
     def sample_baselines_for_fixed_wavelength(self, i_wave: int):
         """
@@ -703,21 +703,21 @@ class Bootstrapper():
 
         Args:
             i_wave: The index of the wavelength to be sampled. This picks
-              a Data_per_wavelength object from self.data_per_wavelength.
+              a Data_for_one_wavelength object from self.data_per_wavelength.
 
         Returns:
         """
 
-        (data, u_spatial_frequency, v_spatial_frequency, weight) = (
+        (data, u_spfrq, v_spfrq, weight) = (
             self.resample_parallel(
                 (self.data_per_wavelength[i_wave].data,
-                 self.data_per_wavelength[i_wave].u_spatial_frequency,
-                 self.data_per_wavelength[i_wave].v_spatial_frequency,
+                 self.data_per_wavelength[i_wave].u_spfrq,
+                 self.data_per_wavelength[i_wave].v_spfrq,
                  self.data_per_wavelength[i_wave].weight)
             )
         )
 
-        return data, u_spatial_frequency, v_spatial_frequency, weight
+        return data, u_spfrq, v_spfrq, weight
 
     def resample(self, data: "iterable", sample_size=None) -> "iterable":
         """
@@ -729,7 +729,7 @@ class Bootstrapper():
               size of the input data.
 
         Returns:
-            sample: The resampled input.
+            resampled_data: The resampled input.
         """
 
         if sample_size is None:
@@ -739,48 +739,48 @@ class Bootstrapper():
             0, high=sample_size-1, size=sample_size, endpoint=True
         )
 
-        sample = np.take(data, indices)
+        resampled_data = np.take(data, indices)
 
-        return sample
+        return resampled_data
 
-    def resample_parallel(self, data_tuple: tuple, sample_size=None) -> tuple:
+    def resample_parallel(self, data: tuple, sample_size=None) -> tuple:
         """
         Resample the input with replacement.
 
         Args:
-            data_tuple: A tuple of iterables all with the same length. All
-              iterables will be resampled individually, but in the same way.
+            data: A tuple of iterables all with the same length. All
+              iterables will be sampled individually, but in the same way.
             sample_size: The length of the created sample for each iterable.
               The default is the size of the input data.
 
         Returns:
-            sample_tuple: The resampled input.
+            resampled_data: The resampled input.
         """
 
-        tuple_len = len(data_tuple)
-        data_len = len(data_tuple[0])
-        for i in range(1, tuple_len):
-            if len(data_tuple[i]) != data_len:
+        len_data = len(data)
+        len_element = len(data[0])
+        for i in range(1, len_data):
+            if len(data[i]) != len_element:
                 raise ValueError(
                     f"Tuple items do not have the same length. Found length "
-                    f"of {data_len} for tupel item 0 and {len(data_tuple[i])} "
+                    f"of {len_element} for tupel item 0 and {len(data[i])} "
                     f"for tupel item {i}."
                 )
 
         if sample_size is None:
-            sample_size = data_len
+            sample_size = len_element
 
-        indices = self.rng.integers(0, high=data_len-1, size=sample_size,
+        indices = self.rng.integers(0, high=len_element-1, size=sample_size,
                             endpoint=True)
 
-        data_ar = np.zeros((tuple_len, sample_size))
+        resampled_data = np.zeros((len_data, sample_size))
 
-        for i in range(tuple_len):
-            data_ar[i] = np.take(data_tuple[i], indices)
+        for i in range(len_data):
+            resampled_data[i] = np.take(data[i], indices)
 
-        sample_tuple = tuple(data_ar)
+        resampled_data = tuple(resampled_data)
 
-        return sample_tuple
+        return resampled_data
 
     def plot_bootstrap_histograms(
         self,

@@ -6,23 +6,23 @@ from scipy.stats import binned_statistic
 import exceptions
 import plotting
 
-def comp_spatial_frequency(u_spatial_frequency, v_spatialfrequency):
+def comp_spfrq(u_spfrq, v_spfrq):
     """
     Compute the spatial frequency related to the baseline.
 
     Args:
-        u_spatial_frequency: The spatial frequencies along the u coordinate.
-        v_spatial_frequency: The spatial frequencies along the v coordinate.
+        u_spfrq: The spatial frequencies along the u coordinate.
+        v_spfrq: The spatial frequencies along the v coordinate.
 
     Returns:
-        spatial_frequency: The spatial frequencies along the baseline.
+        spfrq: The spatial frequencies along the baseline.
     """
 
-    spatial_frequency = (u_spatial_frequency**2 + v_spatialfrequency**2)**0.5
+    spfrq = (u_spfrq**2 + v_spfrq**2)**0.5
 
-    return spatial_frequency
+    return spfrq
 
-def unflag_all_wavelengths(oifits_obj: oifits.oifits,
+def unflag_all_wavelengths(oifits_DU: oifits.oifits,
                            fit_vis_or_vis2: str) -> oifits.oifits:
     """
     Unflag all measurements.
@@ -32,32 +32,32 @@ def unflag_all_wavelengths(oifits_obj: oifits.oifits,
     arrays with data on the fly making use of the flag attribute.
 
     Args:
-        oifits_obj: The oifits object as instance of oifits.oifits.
+        oifits_DU: The oifits data unit (DU) as instance of oifits.oifits.
         fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
           treatment of visibilities (VISAMP) or squared visibilities (VIS2).
 
     Returns:
-        oifits_obj: Modified copy of the input oifits with flagged data.
+        oifits_DU: Modified copy of the input oifits with flagged data.
     """
 
     if fit_vis_or_vis2 == "VISAMP":
 
-        for vis in oifits_obj.vis:
+        for vis in oifits_DU.vis:
 
             vis.flag = vis.flag * False
             vis.flag = vis.flag * False
 
     elif fit_vis_or_vis2 == "VIS2":
 
-        for vis2 in oifits_obj.vis2:
+        for vis2 in oifits_DU.vis2:
 
             vis2.flag = vis2.flag * False
             vis2.flag = vis2.flag * False
 
-    return oifits_obj
+    return oifits_DU
 
-def flag_wavelengths(oifits_obj: oifits.oifits, wave_min: float,
-                     wave_max:float, fit_vis_or_vis2: str) -> oifits.oifits:
+def flag_wavelengths(oifits_DU: oifits.oifits, min_wave: float,
+                     max_wave:float, fit_vis_or_vis2: str) -> oifits.oifits:
     """
     Masks all measurements outside the chosen wavelength range.
 
@@ -66,59 +66,59 @@ def flag_wavelengths(oifits_obj: oifits.oifits, wave_min: float,
     arrays with data on the fly making use of the flag attribute.
 
     Args:
-        oifits_obj: The oifits object as instance of oifits.oifits.
-        wave_min: The minimum wavelength in units of meter to be considered in
+        oifits_DU: The oifits data unit (DU) as instance of oifits.oifits.
+        min_wave: The minimum wavelength in units of meter to be considered in
           the analysis. All data corresponding to smaller wavelengths are
           flagged.
-        wave_max: The maximum wavelength in units of meter to be considered in
+        max_wave: The maximum wavelength in units of meter to be considered in
           the analysis. All data corresponding to larger wavelengths are
           flagged.
         fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
           treatment of visibilities (VISAMP) or squared visibilities (VIS2).
 
     Returns:
-        oifits_obj: Modified copy of the input oifits with flagged data.
+        oifits_DU: Modified copy of the input oifits with flagged data.
     """
 
     if fit_vis_or_vis2 == "VISAMP":
 
-        for vis in oifits_obj.vis:
+        for vis in oifits_DU.vis:
 
-            wave_mask = vis.wavelength.eff_wave < wave_min
+            wave_mask = vis.wavelength.eff_wave < min_wave
             vis.flag[wave_mask] = True
-            wave_mask = vis.wavelength.eff_wave > wave_max
+            wave_mask = vis.wavelength.eff_wave > max_wave
             vis.flag[wave_mask] = True
 
     elif fit_vis_or_vis2 == "VIS2":
 
-        for vis2 in oifits_obj.vis2:
+        for vis2 in oifits_DU.vis2:
 
-            wave_mask = vis2.wavelength.eff_wave < wave_min
+            wave_mask = vis2.wavelength.eff_wave < min_wave
             vis2.flag[wave_mask] = True
-            wave_mask = vis2.wavelength.eff_wave > wave_max
+            wave_mask = vis2.wavelength.eff_wave > max_wave
             vis2.flag[wave_mask] = True
 
-    return oifits_obj
+    return oifits_DU
 
-def sort_station_names(exclude_baselines_ls_ls: list[list[str]]):
+def sort_station_names(exclude_baselines_per_file: list[list[str]]):
     """
     Sort the two station names making up a baseline ID in alphabetical order
 
     For instance, is the baseline id J4A0, it is changed into A0J4.
 
     Args:
-        exclude_baselines_ls_ls: Nested list containining for each oifits file
+        exclude_baselines_per_file: Nested list containining for each oifits file
           the baselines to be flagged.
     """
 
-    for i, exclude_baselines_ls in enumerate(exclude_baselines_ls_ls):
+    for i, exclude_baselines in enumerate(exclude_baselines_per_file):
 
-        for j, baseline_id in enumerate(exclude_baselines_ls):
+        for j, baseline_id in enumerate(exclude_baselines):
 
             ls = [baseline_id[:2], baseline_id[2:]]
             ls.sort()
             new_baseline_id = "".join(ls)
-            exclude_baselines_ls_ls[i][j] = new_baseline_id
+            exclude_baselines_per_file[i][j] = new_baseline_id
 
 def write_dict_to_txt(
         d: dict, file: str, path: str, header: str | None = None
@@ -175,14 +175,14 @@ class Baseline():
         ucoord: The u-coordinate in units of meter [m].
         vcoord: The v-coordinate in units of meter [m].
         B: The projected baseline length in units of meter [m].
-        spatial_frequency: The measured spatial frequencies. They are computed
-          via spatial_frequency = baseline/wavelength and have the unit
+        spfrq: The measured spatial frequencies. They are computed
+          via spatial frequency = baseline/wavelength and have the unit
           [1/rad]. To get the common representation (e.g., used by the JMMC
           tool Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one has to
           multiply with 1e-6.
-        u_spatial_frequency: Same as spatial_frequency, but only along the
+        u_spfrq: Same as spfrq, but only along the
           u-axis.
-        v_spatial_frequency: Same as spatial_frequency, but only along the
+        v_spfrq: Same as spfrq, but only along the
           v-axis.
         weight: Weight of the data points for least-squares fitting.
     """
@@ -215,13 +215,13 @@ class Baseline():
         # Compute projected baseline length from u-v-coordinates.
         self.B = np.sqrt(ucoord**2 + vcoord**2)
 
-        self.compute_spatial_frequency()
+        self.compute_spfrq()
 
-    def compute_spatial_frequency(self):
+    def compute_spfrq(self):
 
-        self.spatial_frequency = self.B / self.wavelength
-        self.u_spatial_frequency = self.ucoord / self.wavelength
-        self.v_spatial_frequency = self.vcoord / self.wavelength
+        self.spfrq = self.B / self.wavelength
+        self.u_spfrq = self.ucoord / self.wavelength
+        self.v_spfrq = self.vcoord / self.wavelength
 
     def set_weight(self, weight_mode: str):
         """
@@ -280,52 +280,52 @@ class Baseline():
 class All_Baselines_per_File():
     """Contains all Baseline objects of one Oifits file."""
 
-    def __init__(self, file: str, baseline_ls: list):
+    def __init__(self, file: str, baselines: list):
 
         self.file = file
-        self.baseline_ls = baseline_ls
+        self.baselines = baselines
 
     def __str__(self):
 
-        return f"{len(self.baseline_ls)} baselines from {self.file}."
+        return f"{len(self.baselines)} baselines from {self.file}."
 
 class Full_data_set():
     """
     Contains the full data set for the fit procedure.
 
     Attributes:
-      file_data_set_ls: List of All_Baselines_per_File objects.
+      file_data_sets: List of All_Baselines_per_File objects.
     """
 
     def __init__(
-        self, oifits_file_ls: list[str], wave_min_ls: list[float],
-        wave_max_ls: list[float], path_to_data: str, fit_vis_or_vis2: str,
-        exclude_baselines_ls_ls: list[list[str]] | None = None,
+        self, oifits_files: list[str], min_waves: list[float],
+        max_waves: list[float], path_to_data: str, fit_vis_or_vis2: str,
+        exclude_baselines_per_file: list[list[str]] | None = None,
         unflag_all: bool = False
     ):
         """
         Read input, select wavelength and baseline and create a Full_data_set.
 
         Args:
-            oifits_file_ls: List of the Oifits files to be loaded.
-            wave_min_ls: List of the smallest wavelengths considered per file
-              listed in oifits_file_ls. Thereby it is possible to select
+            oifits_files: List of the Oifits files to be loaded.
+            min_waves: List of the smallest wavelengths considered per file
+              listed in oifits_files. Thereby it is possible to select
               different smallest wavelengths for different files.
-            wave_max_ls: Same as wave_min_ls, but for the largest wavelengths
+            max_waves: Same as min_waves, but for the largest wavelengths
               considered.
             path_to_data: System path to where the Oifits files are.
             fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
               treatment of visibilities (VISAMP) or squared visibilities
               (VIS2).
-            exclude_baselines_ls_ls: Nested list that contains a lists of
+            exclude_baselines_per_file: Nested list that contains a lists of
               baselines to be excluded from the analysis for every file in
-              oifits_file_ls. The alphabetical order of the stations in the
+              oifits_files. The alphabetical order of the stations in the
                baseline name does not matter, they are alphabetically ordered
                internally.
-               Example: oifits_file_ls contains three files. We want to exclude
+               Example: oifits_files contains three files. We want to exclude
                 the baselines 'A0J3' and 'A4K2' in the second file and 'J3G2'
                 in the third file. Then set
-                exclude_baseline_ls = [[], [A0J3, A4K2], [J3G2]].
+                exclude_baselines = [[], [A0J3, A4K2], [J3G2]].
             unflag_all: Set to True to unflag all data before flagging again to
               select the wavelengths interval. Use if data has been
               accidentally flagged in the Oifits file during file creation.
@@ -335,44 +335,44 @@ class Full_data_set():
               not present in an input fits file.
         """
 
-        file_data_set_ls = []
+        file_data_sets = []
 
         # Create empty lists in case no baselines shall be excluded.
-        if exclude_baselines_ls_ls is None:
-            exclude_baselines_ls_ls = [
-                [] for i in range(len(oifits_file_ls))
+        if exclude_baselines_per_file is None:
+            exclude_baselines_per_file = [
+                [] for i in range(len(oifits_files))
             ]
         # Else sort the telescope pairs making up the baseline name in
         # alphabetical order.
         else:
-            sort_station_names(exclude_baselines_ls_ls)
+            sort_station_names(exclude_baselines_per_file)
 
-        for (oifits_file, wave_min, wave_max, exclude_baselines_ls) in zip(
-            oifits_file_ls, wave_min_ls, wave_max_ls, exclude_baselines_ls_ls
+        for (oifits_file, min_wave, max_wave, exclude_baselines) in zip(
+            oifits_files, min_waves, max_waves, exclude_baselines_per_file
         ):
 
-            oifits_obj = oifits.open(path_to_data+oifits_file)
+            oifits_DU = oifits.open(path_to_data+oifits_file)
 
             # Check whether the desired data, visibility or squared visibility,
             # is present in the chosen file. Raise error if not.
             if fit_vis_or_vis2 == "VISAMP":
-                if len(oifits_obj.vis) == 0:
+                if len(oifits_DU.vis) == 0:
                     pass
                     raise exceptions.NoDataError(oifits_file, fit_vis_or_vis2)
             elif fit_vis_or_vis2 == "VIS2":
-                if len(oifits_obj.vis2) == 0:
+                if len(oifits_DU.vis2) == 0:
                     raise exceptions.NoDataError(oifits_file, fit_vis_or_vis2)
 
             # Unflag (=unmask) all values.
             if unflag_all:
 
-                oifits_obj = unflag_all_wavelengths(
-                    oifits_obj, fit_vis_or_vis2
+                oifits_DU = unflag_all_wavelengths(
+                    oifits_DU, fit_vis_or_vis2
                 )
 
             # Flag wavelengths
-            oifits_obj = flag_wavelengths(
-                oifits_obj, wave_min, wave_max, fit_vis_or_vis2
+            oifits_DU = flag_wavelengths(
+                oifits_DU, min_wave, max_wave, fit_vis_or_vis2
             )
 
             # Loop trough the different data sets of the baselines Oifits file.
@@ -380,51 +380,51 @@ class Full_data_set():
             # All_Baselines_per_File object.
             # Different observations joint together in one file are not split.
 
-            baseline_ls = []
+            baselines = []
 
             # Select VISAMP or VIS2
             if fit_vis_or_vis2 == "VISAMP":
-                oifits_data = oifits_obj.vis
+                oi_data = oifits_DU.vis
             elif fit_vis_or_vis2 == "VIS2":
-                oifits_data = oifits_obj.vis2
+                oi_data = oifits_DU.vis2
 
-            for oifits_baseline in oifits_data:
+            for oifits_baseline in oi_data:
 
                 # Get the name of the baseline. Join the two telescope stations
                 # sorted alphabetically.
-                station_ls = [oifits_baseline.station[0].sta_name,
+                stations = [oifits_baseline.station[0].sta_name,
                               oifits_baseline.station[1].sta_name]
-                station_ls.sort()
-                baseline_id = "".join(station_ls)
+                stations.sort()
+                baseline_id = "".join(stations)
 
                 # Skip baseline if it shall be excluded from analysis.
-                if len(exclude_baselines_ls) != 0:
+                if len(exclude_baselines) != 0:
 
-                    if baseline_id in exclude_baselines_ls:
+                    if baseline_id in exclude_baselines:
 
                         print(f"Exclude baseline: {baseline_id}")
                         continue
 
                 # Select again on a deeper level VISAMP or VIS2.
                 # Then take the non masked values from each baseline and put
-                # them as array in oifits_data, oifits_error, and
+                # them as array in oi_data, oifits_error, and
                 # oifits_wavelength. No masked arrays from this point on, only
                 # the chosen data.
                 if fit_vis_or_vis2 == "VISAMP":
 
-                    oifits_data_values = oifits_baseline.visamp[
+                    oi_data_values = oifits_baseline.visamp[
                         np.invert(oifits_baseline.flag)
                     ].data
-                    oifits_data_err_values = oifits_baseline.visamperr[
+                    oi_data_err_values = oifits_baseline.visamperr[
                         np.invert(oifits_baseline.flag)
                     ].data
 
                 elif fit_vis_or_vis2 == "VIS2":
 
-                    oifits_data_values = oifits_baseline.vis2data[
+                    oi_data_values = oifits_baseline.vis2data[
                         np.invert(oifits_baseline.flag)
                     ].data
-                    oifits_data_err_values = oifits_baseline.vis2err[
+                    oi_data_err_values = oifits_baseline.vis2err[
                         np.invert(oifits_baseline.flag)
                     ].data
 
@@ -437,20 +437,20 @@ class Full_data_set():
 
                 baseline = Baseline(
                     baseline_id=baseline_id,
-                    data=oifits_data_values,
-                    data_error=oifits_data_err_values,
+                    data=oi_data_values,
+                    data_error=oi_data_err_values,
                     wavelength=wavelength,
                     ucoord=ucoord,
                     vcoord=vcoord,
                 )
-                baseline_ls.append(baseline)
+                baselines.append(baseline)
 
-            file_data_set_ls.append(
+            file_data_sets.append(
                 All_Baselines_per_File(
-                    file=oifits_file, baseline_ls=baseline_ls)
+                    file=oifits_file, baselines=baselines)
             )
 
-        self.file_data_set_ls = file_data_set_ls
+        self.file_data_sets = file_data_sets
 
     def set_weight(self, weight_mode: str):
         """
@@ -461,9 +461,9 @@ class Full_data_set():
         """
 
         # Cycle through all Baselines.
-        for file_data_set in self.file_data_set_ls:
+        for file_data_set in self.file_data_sets:
 
-            for baseline in file_data_set.baseline_ls:
+            for baseline in file_data_set.baselines:
 
                 baseline.set_weight(weight_mode=weight_mode)
 
@@ -495,12 +495,12 @@ class Full_data_set():
             bins: Can be integer giving the number bins to apply for all input
               files. Or list of integer giving the number of bins individually
               for each input file.
-            wave_range: Optional, can be tuple of the form (wave_min, wave_max)
+            wave_range: Optional, can be tuple of the form (min_wave, max_wave)
               that defines the wavelengths between the bins are spread. Or can
               be list of tuples of the described form.
         """
 
-        N_file_data_set = len(self.file_data_set_ls)
+        N_file_data_set = len(self.file_data_sets)
 
         # Check input and generalize to lists.
         if type(bins) == int:
@@ -514,7 +514,6 @@ class Full_data_set():
                     "Alternatively, input bins as integer to use this number "
                     "for all files."
                 )
-                bins_ls = bins
 
         if wave_bins_range is None:
             wave_bins_range = [
@@ -537,10 +536,10 @@ class Full_data_set():
                 )
 
         for file_data_set, bins_data_set, wave_bins_range_data_set in zip(
-            self.file_data_set_ls, bins, wave_bins_range
+            self.file_data_sets, bins, wave_bins_range
         ):
 
-            for baseline in file_data_set.baseline_ls:
+            for baseline in file_data_set.baselines:
 
                 # The np.flip is required to sort according to decreasing
                 # wavelengths as the binned_statistics returns increasing
@@ -587,7 +586,7 @@ class Full_data_set():
                 )
 
                 # Recompute spatial frequencies.
-                baseline.compute_spatial_frequency()
+                baseline.compute_spfrq()
 
     def get_all_data_flattened(self) -> tuple:
         """
@@ -595,72 +594,72 @@ class Full_data_set():
 
         Returns:
             Returns object attribute arrays in a tuple of the form
-            (data, data_error, wavelength, u_spatial_frequency,
-            v_spatial_frequency, weight).
+            (data, data_error, wavelength, u_spfrq,
+            v_spfrq, weight).
         """
 
-        data_ls = []
-        data_error_ls = []
-        wavelength_ls = []
-        u_spatial_frequency_ls = []
-        v_spatial_frequency_ls = []
-        weight_ls = []
+        data_per_baseline = []
+        data_error_per_baseline = []
+        wavelengths_per_baseline = []
+        u_spfrq_per_baseline = []
+        v_spfrq_per_baseline = []
+        weight_per_baseline = []
 
-        for file_data_set in self.file_data_set_ls:
+        for file_data_set in self.file_data_sets:
 
-            for baseline in file_data_set.baseline_ls:
+            for baseline in file_data_set.baselines:
 
-                data_ls.extend(baseline.data)
-                data_error_ls.extend(baseline.data_error)
-                wavelength_ls.extend(baseline.wavelength)
-                u_spatial_frequency_ls.extend(baseline.u_spatial_frequency)
-                v_spatial_frequency_ls.extend(baseline.v_spatial_frequency)
-                weight_ls.extend(baseline.weight)
+                data_per_baseline.extend(baseline.data)
+                data_error_per_baseline.extend(baseline.data_error)
+                wavelengths_per_baseline.extend(baseline.wavelength)
+                u_spfrq_per_baseline.extend(baseline.u_spfrq)
+                v_spfrq_per_baseline.extend(baseline.v_spfrq)
+                weight_per_baseline.extend(baseline.weight)
 
-        data = np.asarray(data_ls).flatten()
-        data_error = np.asarray(data_error_ls).flatten()
-        wavelength = np.asarray(wavelength_ls).flatten()
-        u_spatial_frequency = np.asarray(u_spatial_frequency_ls).flatten()
-        v_spatial_frequency = np.asarray(v_spatial_frequency_ls).flatten()
-        weight = np.asarray(weight_ls).flatten()
+        data = np.asarray(data_per_baseline).flatten()
+        data_error = np.asarray(data_error_per_baseline).flatten()
+        wavelength = np.asarray(wavelengths_per_baseline).flatten()
+        u_spfrq = np.asarray(u_spfrq_per_baseline).flatten()
+        v_spfrq = np.asarray(v_spfrq_per_baseline).flatten()
+        weight = np.asarray(weight_per_baseline).flatten()
 
         return (
-            data, data_error, wavelength, u_spatial_frequency,
-            v_spatial_frequency, weight
+            data, data_error, wavelength, u_spfrq,
+            v_spfrq, weight
         )
 
     def get_all_baselines(self) -> list:
         """
-        Returns all baselines of the data set as a list.
+        Returns all baselines of the data set that has not been excluded.
 
         Returns:
-            baseline_ls: List of all baselines of all loaded Oifits files that
-              have not be excluded from the process.
+            baselines: All baselines of all loaded Oifits files that
+              have not been excluded from the process.
         """
 
-        all_baseline_ls = []
-        for file_data_set in self.file_data_set_ls:
+        all_baselines = []
+        for file_data_set in self.file_data_sets:
 
-            for baseline in file_data_set.baseline_ls:
+            for baseline in file_data_set.baselines:
 
-                all_baseline_ls.append(baseline)
+                all_baselines.append(baseline)
 
-        return all_baseline_ls
+        return all_baselines
 
     def get_data_per_wavelength(self) -> list:
         """
-        Returns a list of Data_per_wavelength objects.
+        Returns a list of Data_for_one_wavelength objects.
 
         Use this function only when analyzing Oifits with the exact same
         wavelength grid or a single file.
         Collects for each individual wavlength all associated data and puts it
-        into a Data_per_wavelength object. All Data_per_wavelength objects are
+        into a Data_for_one_wavelength object. All Data_for_one_wavelength objects are
         put into a list that is returned.
         The length of the output list is equal to the amount of individual
         wavelengths.
 
         Returns:
-            data_per_wavelength_ls: List of Data_per_wavelength objects.
+            data_per_wavelength: List of Data_for_one_wavelength objects.
         """
 
         # Check whether all Baseline objects contain the exact same wavelength
@@ -671,10 +670,10 @@ class Full_data_set():
             "reasonable.\nProbably the data of two Oifits files with "
             "different wavelength grids are loaded."
         )
-        wavelength = self.file_data_set_ls[0].baseline_ls[0].wavelength
-        for file_data_set in self.file_data_set_ls:
+        wavelength = self.file_data_sets[0].baselines[0].wavelength
+        for file_data_set in self.file_data_sets:
 
-            for baseline in file_data_set.baseline_ls:
+            for baseline in file_data_set.baselines:
 
                 if len(wavelength) != len(baseline.wavelength):
                     raise ValueError(error_message)
@@ -683,7 +682,7 @@ class Full_data_set():
                     raise ValueError(error_message)
 
         # Sort the data after wavelength.
-        Data_per_wavelength_ls = []
+        data_per_wavelength = []
         all_baselines = self.get_all_baselines()
         N_baselines = len(all_baselines)
 
@@ -691,60 +690,60 @@ class Full_data_set():
 
             data = np.zeros(N_baselines)
             data_error = np.zeros(N_baselines)
-            spatial_frequency = np.zeros(N_baselines)
-            u_spatial_frequency = np.zeros(N_baselines)
-            v_spatial_frequency = np.zeros(N_baselines)
+            spfrq = np.zeros(N_baselines)
+            u_spfrq = np.zeros(N_baselines)
+            v_spfrq = np.zeros(N_baselines)
             weight = np.zeros(N_baselines)
             ucoord = np.zeros(N_baselines)
             vcoord = np.zeros(N_baselines)
             B = np.zeros(N_baselines)
-            baseline_id_ls = []
+            baseline_ids = []
 
             for i_baseline, baseline in enumerate(all_baselines):
 
                 data[i_baseline] = baseline.data[i_wave]
                 data_error[i_baseline] = baseline.data_error[i_wave]
-                spatial_frequency[i_baseline] = \
-                    baseline.spatial_frequency[i_wave]
-                u_spatial_frequency[i_baseline] = \
-                    baseline.u_spatial_frequency[i_wave]
-                v_spatial_frequency[i_baseline] = \
-                    baseline.v_spatial_frequency[i_wave]
+                spfrq[i_baseline] = \
+                    baseline.spfrq[i_wave]
+                u_spfrq[i_baseline] = \
+                    baseline.u_spfrq[i_wave]
+                v_spfrq[i_baseline] = \
+                    baseline.v_spfrq[i_wave]
                 weight[i_baseline] = baseline.weight[i_wave]
                 ucoord[i_baseline] = baseline.ucoord
                 vcoord[i_baseline] = baseline.vcoord
                 B[i_baseline] = baseline.B
-                baseline_id_ls.append(baseline.baseline_id)
+                baseline_ids.append(baseline.baseline_id)
 
-            Data_per_wavelength_ls.append(
-                Data_per_wavelength(
+            data_per_wavelength.append(
+                Data_for_one_wavelength(
                     wavelength=single_wavelength,
                     data=data,
                     data_error=data_error,
-                    spatial_frequency=spatial_frequency,
-                    u_spatial_frequency=u_spatial_frequency,
-                    v_spatial_frequency=v_spatial_frequency,
+                    spfrq=spfrq,
+                    u_spfrq=u_spfrq,
+                    v_spfrq=v_spfrq,
                     weight=weight,
                     ucoord=ucoord,
                     vcoord=vcoord,
                     B=B,
-                    baseline_id_ls=baseline_id_ls
+                    baseline_ids=baseline_ids
                 )
             )
 
-        return Data_per_wavelength_ls
+        return data_per_wavelength
 
 class Full_data_set_from_list(Full_data_set):
     """
     Full_data_set created by providing list of All_Baselines_per_File objects.
     """
 
-    def __init__(self, file_data_set_ls: list):
+    def __init__(self, file_data_sets: list):
 
 
-        self.file_data_set_ls = file_data_set_ls
+        self.file_data_sets = file_data_sets
 
-class Data_per_wavelength():
+class Data_for_one_wavelength():
     """
     Contains for a one wavelength the associated data of various baselines.
 
@@ -758,35 +757,35 @@ class Data_per_wavelength():
         data: The data associated with the wavelengths from all baselines.
         data_error: Same as data, but for the data uncertainties.
         weight: Weight of the data points for least-squares fitting.
-        spatial_frequency: The measured spatial frequencies along the baseline.
-          They are computed via spatial_frequency = baseline/wavelength and
+        spfrq: The measured spatial frequencies along the baseline.
+          They are computed via spatial frequency = baseline/wavelength and
           have the unit [1/rad]. To get the common representation (e.g., used
           by the JMMC tool Oifitsexplorer) as 'Mega lambda' or '1e6/rad', one
           has to multiply with 1e-6.
-        u_spatial_frequency: Spatial frequency along u axis in units of 1/rad.
-        v_spatial_frequency: Spatial frequency along v axis in units of 1/rad.
+        u_spfrq: Spatial frequency along u axis in units of 1/rad.
+        v_spfrq: Spatial frequency along v axis in units of 1/rad.
         ucoord: The u-coordinate in units of meter [m].
         vcoord: The v-coordinate in units of meter [m].
         B: The projected baseline length in units of meter [m].
     """
 
     def __init__(
-        self, wavelength, data, data_error, spatial_frequency,
-        u_spatial_frequency, v_spatial_frequency, weight, ucoord, vcoord, B,
-        baseline_id_ls
+        self, wavelength, data, data_error, spfrq,
+        u_spfrq, v_spfrq, weight, ucoord, vcoord, B,
+        baseline_ids
     ):
 
         self.wavelength = wavelength
         self.data = data
         self.data_error = data_error
-        self.spatial_frequency = spatial_frequency
-        self.u_spatial_frequency = u_spatial_frequency
-        self.v_spatial_frequency = v_spatial_frequency
+        self.spfrq = spfrq
+        self.u_spfrq = u_spfrq
+        self.v_spfrq = v_spfrq
         self.weight = weight
         self.ucoord = ucoord
         self.vcoord = vcoord
         self.B = B
-        self.baseline_id_ls = baseline_id_ls
+        self.baseline_ids = baseline_ids
 
     def __str__(self):
 
