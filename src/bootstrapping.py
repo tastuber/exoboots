@@ -54,7 +54,7 @@ class Bootstrapper():
         self.full_data_set = full_data_set
         self.full_data_set.set_weight(weight_mode=self.weight_mode)
 
-        self.default_save_fig_path = "../results/"
+        self.default_save_fig_path = "./"
 
 
         # Set up random number generator.
@@ -599,7 +599,7 @@ class Bootstrapper():
 
         return self.sed
 
-    def save_fit_results(self, save_path: str = "../results/"):
+    def save_fit_results(self, save_path: str = "./"):
 
         file_name = plotting.get_results_file_name(
             suffix="fit_results",
@@ -616,7 +616,7 @@ class Bootstrapper():
             d=self.results, file=file_name, path=save_path, header=header
         )
 
-    def save_relative_sed(self, save_path: str = "../results/"):
+    def save_relative_sed(self, save_path: str = "./"):
 
         file_name = plotting.get_results_file_name(
             suffix="relative_sed",
@@ -633,7 +633,7 @@ class Bootstrapper():
             d=self.relative_sed, file=file_name, path=save_path, header=header
         )
 
-    def save_dust_sed(self, save_path: str = "../results/"):
+    def save_dust_sed(self, save_path: str = "./"):
 
         file_name = plotting.get_results_file_name(
             suffix="dust_SED",
