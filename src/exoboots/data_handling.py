@@ -1,10 +1,9 @@
-import oifits
-
 import numpy as np
+import oifits
 from scipy.stats import binned_statistic
 
-import exceptions
-import plotting
+from exoboots import exceptions
+from exoboots import plotting
 
 def comp_spfrq(u_spfrq, v_spfrq):
     """

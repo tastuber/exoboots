@@ -5,9 +5,9 @@ import astropy.units as u
 import lmfit
 import numpy as np
 
-import data_handling
-import model_functions
-import plotting
+from exoboots import data_handling
+from exoboots import model_functions
+from exoboots import plotting
 
 class Bootstrapper():
     """

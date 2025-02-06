@@ -1,0 +1,50 @@
+[build-system]
+requires = [
+    "hatchling",
+    "versioningit",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "exoboots"
+description = "Model hot exozodiacal dust in optical interferometry data using bootstrapping."
+authors = [
+    {name = "Thomas A. Stuber", email = "tstuber@arizona.edu"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+keywords = ["astronomy", "interferometry", "exozodiacal dust", "oifits"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dynamic = ["version"]
+requires-python = ">=3.12"
+dependencies = [
+    "astropy",
+    "lmfit",
+    "matplotlib",
+    "numpy",
+    "oifits",
+    "scipy"
+]
+
+[project.urls]
+Repository = "https://github.com/tastuber/exoboots"
+
+[tool.hatch.version]
+source = "versioningit"
+
+[tool.versioningit.format]
+# Format used when there have been commits since the most recent tag:
+distance = "{base_version}.post{distance}+{vcs}{rev}"
+# Example formatted version: 1.2.3.post42+ge174a1f
+
+# Format used when there are uncommitted changes:
+dirty = "{base_version}+d{build_date:%Y%m%d}"
+# Example formatted version: 1.2.3+d20230922
+
+# Format used when there are both commits and uncommitted changes:
+distance-dirty = "{base_version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+# Example formatted version: 1.2.3.post42+ge174a1f.d20230922
