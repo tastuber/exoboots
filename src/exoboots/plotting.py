@@ -5,7 +5,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from exoboots import data_handling
 
-def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
+def call_plot_histogram(bs, bins, figsize, save, save_path):
 
     match bs.bootstrap_selector:
         case 1 | 2 | 3:
@@ -24,8 +24,8 @@ def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
                     wavelength_str=wavelength_descr,
                     bins=bins,
                     figsize=figsize,
-                    save_fig=save_fig,
-                    save_fig_path=save_fig_path
+                    save=save,
+                    save_path=save_path
                 )
 
         case 4:
@@ -60,15 +60,15 @@ def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
                         wavelength_str=wavelength_str,
                         bins=bins,
                         figsize=figsize,
-                        save_fig=False,
-                        save_fig_path=save_fig_path
+                        save=False,
+                        save_path=save_path
                     )
                     figs.append(fig)
 
-                if save_fig:
+                if save:
 
                     # Make one pdf with each figure on one page.
-                    with PdfPages(save_fig_path+pdf_name) as pdf:
+                    with PdfPages(save_path+pdf_name) as pdf:
 
                         for fig in figs:
 
@@ -82,8 +82,8 @@ def plot_histogram(
         wavelength_str: str,
         bins: int,
         figsize: tuple[float, float],
-        save_fig: bool,
-        save_fig_path: str
+        save: bool,
+        save_path: str
 ):
     """
     Plot the bootstrap histogram for a given parameter.
@@ -96,9 +96,9 @@ def plot_histogram(
           intended for the case of fitting to each wavelength separately. The
           default is an empty string.
         bins: Number of histogram bins. The default is bins = 20.
-        save_fig: Decides whether the figure is saved. True saves the figure,
+        save: Decides whether the figure is saved. True saves the figure,
           False does not.
-        save_fig_path: Path where to save the figure.
+        save_path: Path where to save the figure.
     """
 
     fig, ax = plt.subplots(figsize=figsize)
@@ -167,33 +167,33 @@ def plot_histogram(
     ax.set_xlabel(get_hist_xlabel(param_descr))
     ax.set_ylabel("counts")
 
-    if save_fig:
+    if save:
         file_format = "pdf"
         fig_name = get_hist_fig_name(
             param_descr, sample_descr, fit_func_descr,
             wavelength_str=wavelength_str, file_format=file_format
         )
-        fig.savefig(save_fig_path+fig_name, format=file_format)
+        fig.savefig(save_path+fig_name, format=file_format)
 
     return fig
 
-def plot_vis(bs, plot_data_uncertainty, figsize, save_fig, save_fig_path,
+def plot_vis(bs, plot_data_uncertainty, figsize, save, save_path,
              set_title):
 
     match bs.bootstrap_selector:
         case 1 | 2 | 3:
             plot_vis_all_wavelengths(bs, plot_data_uncertainty, figsize,
-                                     save_fig, save_fig_path, set_title)
+                                     save, save_path, set_title)
         case 4:
             plot_vis_for_fixed_wavelengths(bs, plot_data_uncertainty, figsize,
-                                           save_fig, save_fig_path, set_title)
+                                           save, save_path, set_title)
 
 def plot_vis_all_wavelengths(
         bs,
         plot_data_uncertainty,
         figsize,
-        save_fig,
-        save_fig_path,
+        save,
+        save_path,
         set_title
 ):
 
@@ -481,7 +481,7 @@ def plot_vis_all_wavelengths(
     if set_title:
         ax.set_title(title, loc="left", fontsize=fontsize_L)
 
-    if save_fig:
+    if save:
         file_format = "pdf"
         fig_name = get_vis_fig_name(
             fit_vis_or_vis2=bs.fit_vis_or_vis2,
@@ -490,20 +490,20 @@ def plot_vis_all_wavelengths(
             wavelength_descr=wavelength_descr,
             file_format=file_format
         )
-        fig.savefig(save_fig_path+fig_name, format=file_format,
+        fig.savefig(save_path+fig_name, format=file_format,
                     bbox_inches='tight')
 
 def plot_vis_for_fixed_wavelengths(
         bs,
         plot_data_uncertainty,
         figsize,
-        save_fig,
-        save_fig_path,
+        save,
+        save_path,
         set_title
 ):
 
     # Make one pdf with each figure on one page.
-    if save_fig:
+    if save:
 
         wavelength_descr = "for_single_waves"
         pdf_name = get_vis_fig_name(
@@ -513,7 +513,7 @@ def plot_vis_for_fixed_wavelengths(
                 wavelength_descr=wavelength_descr,
                 file_format="pdf"
         )
-        pdf = PdfPages(save_fig_path+pdf_name)
+        pdf = PdfPages(save_path+pdf_name)
 
     for i_wave in range(bs.N_wavelength):
 
@@ -720,18 +720,18 @@ def plot_vis_for_fixed_wavelengths(
         if set_title:
             ax.set_title(title, loc="left")
 
-        if save_fig:
+        if save:
             pdf.savefig(fig)
 
-    if save_fig:
+    if save:
         pdf.close()
 
 def plot_relative_sed(
         bs,
         plot_data_uncertainty,
         figsize,
-        save_fig,
-        save_fig_path,
+        save,
+        save_path,
         wavelength_descr,
         title = "Relative SED"
 ):
@@ -777,7 +777,7 @@ def plot_relative_sed(
     ax.set_xlabel("wavelength /m")
     ax.set_ylabel("dust to star flux ratio")
 
-    if save_fig:
+    if save:
         file_format = "pdf"
         fig_name = get_results_file_name(
             suffix="relative_sed",
@@ -787,14 +787,14 @@ def plot_relative_sed(
             wavelength_descr=wavelength_descr,
             file_format=file_format
         )
-        fig.savefig(save_fig_path+fig_name, format=file_format)
+        fig.savefig(save_path+fig_name, format=file_format)
 
 def plot_dust_sed(
         bs,
         plot_data_uncertainty,
         figsize,
-        save_fig,
-        save_fig_path,
+        save,
+        save_path,
         wavelength_descr,
         title = "Dust SED"
 ):
@@ -838,7 +838,7 @@ def plot_dust_sed(
     ax.set_xlabel("wavelength /m")
     ax.set_ylabel("dust flux /Jy")
 
-    if save_fig:
+    if save:
         file_format = "pdf"
         fig_name = get_results_file_name(
             suffix="dust_SED",
@@ -848,7 +848,7 @@ def plot_dust_sed(
             wavelength_descr=wavelength_descr,
             file_format=file_format
         )
-        fig.savefig(save_fig_path+fig_name, format=file_format)
+        fig.savefig(save_path+fig_name, format=file_format)
 
 def get_short_param_str(param_descr: str) -> str:
     """

@@ -54,7 +54,7 @@ class Bootstrapper():
         self.full_data_set = full_data_set
         self.full_data_set.set_weight(weight_mode=self.weight_mode)
 
-        self.default_save_fig_path = "./"
+        self.default_save_path = "./"
 
 
         # Set up random number generator.
@@ -599,7 +599,10 @@ class Bootstrapper():
 
         return self.sed
 
-    def save_fit_results(self, save_path: str = "./"):
+    def save_fit_results(self, save_path: str | None = None):
+
+        if not save_path:
+            save_path = self.default_save_path
 
         file_name = plotting.get_results_file_name(
             suffix="fit_results",
@@ -616,7 +619,10 @@ class Bootstrapper():
             d=self.results, file=file_name, path=save_path, header=header
         )
 
-    def save_relative_sed(self, save_path: str = "./"):
+    def save_relative_sed(self, save_path: str | None = None):
+
+        if not save_path:
+            save_path = self.default_save_path
 
         file_name = plotting.get_results_file_name(
             suffix="relative_sed",
@@ -633,7 +639,10 @@ class Bootstrapper():
             d=self.relative_sed, file=file_name, path=save_path, header=header
         )
 
-    def save_dust_sed(self, save_path: str = "./"):
+    def save_dust_sed(self, save_path: str | None = None):
+
+        if not save_path:
+            save_path = self.default_save_path
 
         file_name = plotting.get_results_file_name(
             suffix="dust_SED",
@@ -785,39 +794,39 @@ class Bootstrapper():
         self,
         bins: int = 20,
         figsize: tuple[float, float] = (10, 8),
-        save_fig: bool = True,
-        save_fig_path: str | None = None
+        save: bool = True,
+        save_path: str | None = None
     ):
 
-        if not save_fig_path:
-            save_fig_path = self.default_save_fig_path
+        if not save_path:
+            save_path = self.default_save_path
 
         plotting.call_plot_histogram(
             bs=self,
             bins=bins,
             figsize=figsize,
-            save_fig=save_fig,
-            save_fig_path=save_fig_path
+            save=save,
+            save_path=save_path
         )
 
     def plot_data(
         self,
         plot_data_uncertainty: bool = True,
         figsize: tuple[float, float] = (20, 12),
-        save_fig: bool = True,
-        save_fig_path: str | None = None,
+        save: bool = True,
+        save_path: str | None = None,
         set_title: bool = True
     ):
 
-        if not save_fig_path:
-            save_fig_path = self.default_save_fig_path
+        if not save_path:
+            save_path = self.default_save_path
 
         plotting.plot_vis(
             bs=self,
             plot_data_uncertainty=plot_data_uncertainty,
             figsize=figsize,
-            save_fig=save_fig,
-            save_fig_path=save_fig_path,
+            save=save,
+            save_path=save_path,
             set_title=set_title
         )
 
@@ -825,21 +834,21 @@ class Bootstrapper():
         self,
         plot_data_uncertainty: bool = True,
         figsize: tuple[float, float] = (16, 8),
-        save_fig: bool = True,
-        save_fig_path: str | None = None,
+        save: bool = True,
+        save_path: str | None = None,
         title: str = ""
     ):
 
-        if not save_fig_path:
-            save_fig_path = self.default_save_fig_path
+        if not save_path:
+            save_path = self.default_save_path
 
         try:
             plotting.plot_dust_sed(
                 bs=self,
                 plot_data_uncertainty=plot_data_uncertainty,
                 figsize=figsize,
-                save_fig=save_fig,
-                save_fig_path=save_fig_path,
+                save=save,
+                save_path=save_path,
                 wavelength_descr=self.wavelength_descr,
                 title=title
             )
@@ -852,20 +861,20 @@ class Bootstrapper():
         self,
         plot_data_uncertainty: bool = True,
         figsize: tuple[float, float] = (16, 8),
-        save_fig: bool = True,
-        save_fig_path: str | None = None,
+        save: bool = True,
+        save_path: str | None = None,
         title: str = ""
     ):
 
-        if not save_fig_path:
-            save_fig_path = self.default_save_fig_path
+        if not save_path:
+            save_path = self.default_save_path
 
         plotting.plot_relative_sed(
             bs=self,
             plot_data_uncertainty=plot_data_uncertainty,
             figsize=figsize,
-            save_fig=save_fig,
-            save_fig_path=save_fig_path,
+            save=save,
+            save_path=save_path,
             wavelength_descr=self.wavelength_descr,
             title=title
         )
