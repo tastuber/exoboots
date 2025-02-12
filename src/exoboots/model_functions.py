@@ -2,7 +2,7 @@ import astropy.units as u
 import numpy as np
 import scipy
 
-from data_handling import comp_spfrq
+from exoboots.data_handling import comp_spfrq
 
 def comp_VIS2_limbDarkDisk_overresolved(
     u_spfrq: "Scalar or array (float)",

@@ -3,7 +3,7 @@ import numpy as np
 
 from matplotlib.backends.backend_pdf import PdfPages
 
-import data_handling
+from exoboots import data_handling
 
 def call_plot_histogram(bs, bins, figsize, save_fig, save_fig_path):
 
