@@ -23,5 +23,4 @@ class NoDataError(Exception):
 
         self.message = (f"The file {oifits_file} contains no {data_str} data.")
 
-    def __str__(self):
-        return repr(self.message)
+        super().__init__(self.message)
