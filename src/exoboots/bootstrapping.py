@@ -6,6 +6,7 @@ import lmfit
 import numpy as np
 
 from exoboots import data_handling
+from exoboots import exceptions
 from exoboots import model_functions
 from exoboots import plotting
 
@@ -53,6 +54,7 @@ class Bootstrapper():
         self.weight_mode = weight_mode
         self.full_data_set = full_data_set
         self.full_data_set.set_weight(weight_mode=self.weight_mode)
+        self.model_is_setup = False
 
         self.default_save_path = "./"
 
@@ -248,8 +250,19 @@ class Bootstrapper():
             if not vary_param[param_name]
         }
 
+        self.model_is_setup = True
+
     def do_bootstrapping_all_wavelengths(self):
-        """Do one bootstrap fit for the full data set."""
+        """
+        Do one bootstrap fit for the full data set.
+
+        Raises:
+            NoModelError: Bootstrapping is started before a model is set up by
+              executing exoboots.setup_model().
+        """
+
+        if not self.model_is_setup:
+            raise exceptions.NoModelError()
 
         # Store the full results from the bootstrapping, thus the fit results
         # for every sample.
@@ -334,7 +347,16 @@ class Bootstrapper():
         self.results["ndof"] = ndof
 
     def do_bootstrapping_for_fixed_wavelengths(self):
-        """Do a bootstrap fit each wavelength."""
+        """
+        Do a bootstrap fit each wavelength.
+
+        Raises:
+            NoModelError: Bootstrapping is started before a model is set up by
+              executing exoboots.setup_model().
+        """
+
+        if not self.model_is_setup:
+            raise exceptions.NoModelError()
 
         self.results = {}
         relative_sed = np.zeros([4, self.N_wavelength])

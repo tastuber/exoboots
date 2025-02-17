@@ -24,3 +24,20 @@ class NoDataError(Exception):
         self.message = (f"The file {oifits_file} contains no {data_str} data.")
 
         super().__init__(self.message)
+
+class NoModelError(Exception):
+    """
+    Exception raised in case bootstrapping is started without a model set.
+
+    Attributes:
+        message: The error message.
+    """
+
+    def __init__(self):
+
+        self.message = (
+            "You attempt to run the bootstrapper, but no model has been "
+            "defined.\nSet up a model first with exoboots.setup_model()."
+        )
+
+        super().__init__(self.message)
