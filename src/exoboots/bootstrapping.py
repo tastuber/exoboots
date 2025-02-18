@@ -43,8 +43,9 @@ class Bootstrapper():
                 to be considered if data with different numbers of data points
                 per baseline are analyzed jointly, e.g., when combining
                 observations of multiple instruments or of the same instrument
-                but with different spectral dispersions. "both": Both "error"
-                and "points per baseline" weights combined via multiplication.
+                but with different spectral dispersions.
+              "both": Both "error" and "points per baseline" weights combined
+                via multiplication.
         """
 
         self.N_sample = N_sample

@@ -67,7 +67,7 @@ def comp_VISAMP_limbDarkDisk_overresolved(
           for a uniform disk without limb-darkening.
 
     Returns:
-      VISAMP: The computed visibility amplitude as scalar or array.
+        VISAMP: The computed visibility amplitude as scalar or array.
     """
 
     VISAMP = (
@@ -107,7 +107,7 @@ def comp_VISAMP_limbDarkDisk_gauss(
         FWHM: The FWHM of the circular Gaussian in units of mas.
 
     Returns:
-      VISAMP: The computed visibility amplitude as scalar or array.
+        VISAMP: The computed visibility amplitude as scalar or array.
     """
 
     VISAMP = (
@@ -154,7 +154,7 @@ def comp_VISAMP_limbDarkDisk_ring(
           larger than 1.0.
 
     Returns:
-      VISAMP: The computed visibility amplitude as scalar or array.
+        VISAMP: The computed visibility amplitude as scalar or array.
     """
 
     f_star = 1.0
