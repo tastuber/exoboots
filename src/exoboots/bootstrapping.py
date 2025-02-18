@@ -68,58 +68,39 @@ class Bootstrapper():
             case 1:
                 self.model_is_polar_symmetric = True
                 descriptor = "limbDarkDisk_overresolved"
-                if fit_vis_or_vis2 == "VISAMP":
-                    self.fit_func = \
-                        model_functions.comp_VISAMP_limbDarkDisk_overresolved
-                    self.fit_func_descr = f"VISAMP_{descriptor}"
-                elif fit_vis_or_vis2 == "VIS2":
-                    self.fit_func = \
-                        model_functions.comp_VIS2_limbDarkDisk_overresolved
-                    self.fit_func_descr = f"VIS2_{descriptor}"
+                fit_func = \
+                    model_functions.comp_VISAMP_limbDarkDisk_overresolved
+
             case 2:
                 self.model_is_polar_symmetric = True
                 descriptor = "limbDarkDisk_gauss"
-                if fit_vis_or_vis2 == "VISAMP":
-                    self.fit_func = \
-                        model_functions.comp_VISAMP_limbDarkDisk_gauss
-                    self.fit_func_descr = f"VISAMP_{descriptor}"
-                elif fit_vis_or_vis2 == "VIS2":
-                    self.fit_func = \
-                        model_functions.comp_VIS2_limbDarkDisk_gauss
-                    self.fit_func_descr = f"VIS2_{descriptor}"
+                fit_func = model_functions.comp_VISAMP_limbDarkDisk_gauss
+
             case 3:
                 self.model_is_polar_symmetric = True
                 descriptor = "limbDarkDisk_ring"
-                if fit_vis_or_vis2 == "VISAMP":
-                    self.fit_func = \
-                        model_functions.comp_VISAMP_limbDarkDisk_ring
-                    self.fit_func_descr = f"VISAMP_{descriptor}"
-                elif fit_vis_or_vis2 == "VIS2":
-                    self.fit_func = \
-                        model_functions.comp_VIS2_limbDarkDisk_ring
-                    self.fit_func_descr = f"VIS2_{descriptor}"
+                fit_func = model_functions.comp_VISAMP_limbDarkDisk_ring
+
             case 4:
                 self.model_is_polar_symmetric = False
                 descriptor = "limbDarkDisk_gauss_ptSrc"
-                if fit_vis_or_vis2 == "VISAMP":
-                    self.fit_func = \
-                        model_functions.comp_VISAMP_limbDarkDisk_gauss_ptSrc
-                    self.fit_func_descr = f"VISAMP_{descriptor}"
-                elif fit_vis_or_vis2 == "VIS2":
-                    self.fit_func = \
-                        model_functions.comp_VIS2_limbDarkDisk_gauss_ptSrc
-                    self.fit_func_descr = f"VIS2_{descriptor}"
+                fit_func = model_functions.comp_VISAMP_limbDarkDisk_gauss_ptSrc
+
             case 5:
                 self.model_is_polar_symmetric = False
                 descriptor = "limbDarkDisk_ring_UD"
-                if fit_vis_or_vis2 == "VISAMP":
-                    self.fit_func = \
-                        model_functions.comp_VISAMP_limbDarkDisk_ring_UD
-                    self.fit_func_descr = f"VISAMP_{descriptor}"
-                elif fit_vis_or_vis2 == "VIS2":
-                    self.fit_func = \
-                        model_functions.comp_VIS2_limbDarkDisk_ring_UD
-                    self.fit_func_descr = f"VIS2_{descriptor}"
+                fit_func = model_functions.comp_VISAMP_limbDarkDisk_ring_UD
+
+        # To yield the squared visibility, square the visibility amplitude.
+        if fit_vis_or_vis2 == "VIS2":
+
+            self.fit_func = model_functions.square_func(fit_func)
+            self.fit_func_descr = f"VIS2_{descriptor}"
+
+        elif fit_vis_or_vis2 == "VISAMP":
+
+            self.fit_func = fit_func
+            self.fit_func_descr = f"VISAMP_{descriptor}"
 
         # Select how the data is bootstrapped.
         match self.bootstrap_selector:

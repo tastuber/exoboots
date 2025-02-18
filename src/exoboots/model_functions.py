@@ -1,32 +1,48 @@
+import functools
+
 import astropy.units as u
 import numpy as np
 import scipy
 
 from exoboots.data_handling import comp_spfrq
 
-def comp_VIS2_limbDarkDisk_overresolved(
-    u_spfrq: "Scalar or array (float)",
-    v_spfrq: "Scalar or array (float)",
-    f_cse: float,
-    stellar_diameter: float,
-    lin_limb_dark_param: float,
-) -> "Scalar or array (float)":
+def square_func(func):
     """
-    Compute the squared vis. for limb dark. disk and overresolved component.
+    Create wrapper function that takes a function and squares its output.
 
-    Compute the result as the square of the visibility amplitude. See for more
-    information and Args the function comp_VISAMP_limbDarkDisk_overresolved.
+    This is used to compute the squared visibility from the visibility
+    amplitude. This way, model functions only have to be implemented for the
+    visibility amplitude.
+
+    The functool.wraps decorator is required to expose the signature of the
+    argument function to lmfit.Model.
+
+    Args:
+        func: A function returning numeric values.
 
     Returns:
-      VIS2: The computed squared visibility as scalar or array.
+        squared: A function returning the square of the output of func.
     """
 
-    VIS2 = comp_VISAMP_limbDarkDisk_overresolved(
-        u_spfrq, v_spfrq, f_cse, stellar_diameter,
-        lin_limb_dark_param
-    )**2
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
 
-    return VIS2
+        return func(*args, **kwargs)**2
+
+    # Update docstring to give information about wrapping.
+    original_doc = wrapper.__doc__ or ""
+    wrapper.__doc__ = f"""
+    Wrapper function of {func.__name__} squaring its output.
+
+    Thus, the output is the quared visibility (VIS2). See below for the
+    docstring of the wrapped function computing the visibility amplitude
+    (VISAMP)
+
+    Original docstring of {func.__name__}:
+    {original_doc}
+    """
+
+    return wrapper
 
 def comp_VISAMP_limbDarkDisk_overresolved(
     u_spfrq: "Scalar or array (float)",
@@ -64,31 +80,6 @@ def comp_VISAMP_limbDarkDisk_overresolved(
     )
 
     return VISAMP
-
-def comp_VIS2_limbDarkDisk_gauss(
-    u_spfrq: "Scalar or array (float)",
-    v_spfrq: "Scalar or array (float)",
-    f_cse: float,
-    stellar_diameter: float,
-    lin_limb_dark_param: float,
-    FWHM: float
-) -> "Scalar or array (float)":
-    """
-    Compute the squared vis. for limb darkened disk and surrounding Gaussian.
-
-    Compute the result as the square of the visibility amplitude. See for more
-    information and Args the function comp_VISAMP_limbDarkDisk_gauss.
-
-    Returns:
-        VIS2: The computed squared visibility as scalar or array.
-    """
-
-    VIS2 = comp_VISAMP_limbDarkDisk_gauss(
-        u_spfrq, v_spfrq, f_cse, stellar_diameter,
-        lin_limb_dark_param, FWHM
-    )**2
-
-    return VIS2
 
 def comp_VISAMP_limbDarkDisk_gauss(
     u_spfrq: "Scalar or array (float)",
@@ -130,37 +121,6 @@ def comp_VISAMP_limbDarkDisk_gauss(
     )
 
     return VISAMP
-
-def comp_VIS2_limbDarkDisk_ring(
-    u_spfrq: "Scalar or array (float)",
-    v_spfrq: "Scalar or array (float)",
-    stellar_diameter: float,
-    lin_limb_dark_param: float,
-    f_cse: float,
-    R_in: float,
-    width_scaling: float
-) -> "Scalar or array (float)":
-    """
-    Compute the squared vis. for a limb darkened disk surrounded by a ring.
-
-    Compute the result as the square of the visibility amplitude. See for more
-    information and Args the function comp_VISAMP_limbDarkDisk_ring.
-
-    Returns:
-        VIS2: The computed squared visibility as scalar or array.
-    """
-
-    VIS2 = comp_VISAMP_limbDarkDisk_ring(
-        u_spfrq=u_spfrq,
-        v_spfrq=v_spfrq,
-        stellar_diameter=stellar_diameter,
-        lin_limb_dark_param=lin_limb_dark_param,
-        f_cse=f_cse,
-        R_in=R_in,
-        width_scaling=width_scaling
-    )**2
-
-    return VIS2
 
 def comp_VISAMP_limbDarkDisk_ring(
     u_spfrq: "Scalar or array (float)",
@@ -217,41 +177,6 @@ def comp_VISAMP_limbDarkDisk_ring(
     VISAMP = (1.0/f_tot) * (f_star*V_star + f_cse*V_ring)
 
     return VISAMP
-
-def comp_VIS2_limbDarkDisk_gauss_ptSrc(
-    u_spfrq: "Scalar or array (float)",
-    v_spfrq: "Scalar or array (float)",
-    stellar_diameter: float,
-    lin_limb_dark_param: float,
-    f_cse: float,
-    FWHM: float,
-    f_ptsrc: float,
-    alpha_ptsrc: float,
-    beta_ptsrc: float
-) -> "Scalar or array (float)":
-    """
-    Compute the squ. vis. for for limb. dark star, Gaussian, and point source.
-
-    Compute the result as the square of the visibility amplitude. See for more
-    information and Args the function def comp_VISAMP_limbDarkDisk_gauss_ptSrc.
-
-    Returns:
-        VIS2: The computed squared visibility as scalar or array.
-    """
-
-    VIS2 = comp_VISAMP_limbDarkDisk_gauss_ptSrc(
-        u_spfrq,
-        v_spfrq,
-        stellar_diameter,
-        lin_limb_dark_param,
-        f_cse,
-        FWHM,
-        f_ptsrc,
-        alpha_ptsrc,
-        beta_ptsrc
-    )**2
-
-    return VIS2
 
 def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
     u_spfrq: "Scalar or array (float)",
@@ -338,45 +263,6 @@ def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
     VISAMP = B / f_tot
 
     return VISAMP
-
-def comp_VIS2_limbDarkDisk_ring_UD(
-    u_spfrq: "Scalar or array (float)",
-    v_spfrq: "Scalar or array (float)",
-    stellar_diameter: float,
-    lin_limb_dark_param: float,
-    f_cse: float,
-    R_in: float,
-    width_scaling: float,
-    f_UD: float,
-    diameter_UD: float,
-    alpha_UD: float,
-    beta_UD: float
-) -> "Scalar or array (float)":
-    """
-    Compute the squ. vis. for limb. dark star, ring, and off-axis uniform disk.
-
-    Compute the result as the square of the visibility amplitude. See for more
-    information and Args the function def comp_VISAMP_limbDarkDisk_ring_UD.
-
-    Returns:
-        VIS2: The computed squared visibility as scalar or array.
-    """
-
-    VIS2 = comp_VISAMP_limbDarkDisk_ring_UD(
-        u_spfrq=u_spfrq,
-        v_spfrq=v_spfrq,
-        stellar_diameter=stellar_diameter,
-        lin_limb_dark_param=lin_limb_dark_param,
-        f_cse=f_cse,
-        R_in=R_in,
-        width_scaling=width_scaling,
-        f_UD=f_UD,
-        diameter_UD=diameter_UD,
-        alpha_UD=alpha_UD,
-        beta_UD=beta_UD
-    )**2
-
-    return VIS2
 
 def comp_VISAMP_limbDarkDisk_ring_UD(
     u_spfrq: "Scalar or array (float)",
