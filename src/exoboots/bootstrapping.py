@@ -20,7 +20,10 @@ class Bootstrapper():
     """
 
     def __init__(
-        self, N_sample: int, model_selector: int, bootstrap_selector: int,
+        self,
+        N_sample: int,
+        model_selector: int,
+        bootstrap_selector: int,
         fit_vis_or_vis2: str,
         full_data_set: "Full_data_set",
         weight_mode: str,
@@ -143,7 +146,9 @@ class Bootstrapper():
                     self.do_bootstrapping_for_fixed_wavelengths
 
     def setup_model(
-            self, vary_param: dict[bool], param_init_value: dict[float],
+            self,
+            vary_param: dict[bool],
+            param_init_value: dict[float],
             param_bounds: dict[tuple[float]] | None = None
     ):
         """
