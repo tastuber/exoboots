@@ -297,8 +297,8 @@ class Full_data_set():
     """
 
     def __init__(
-        self, oifits_files: list[str], min_waves: list[float],
-        max_waves: list[float], path_to_data: str, fit_vis_or_vis2: str,
+        self, oifits_files: list[str], waves: list[tuple[float, float]],
+        path_to_data: str, fit_vis_or_vis2: str,
         exclude_baselines_per_file: list[list[str]] | None = None,
         unflag_all: bool = False
     ):
@@ -307,11 +307,11 @@ class Full_data_set():
 
         Args:
             oifits_files: List of the Oifits files to be loaded.
-            min_waves: List of the smallest wavelengths considered per file
-              listed in oifits_files. Thereby it is possible to select
-              different smallest wavelengths for different files.
-            max_waves: Same as min_waves, but for the largest wavelengths
-              considered.
+            waves: List of the wavelength intervals in the form
+              tuple(min_wave, max_wave) considered per file listed in
+              oifits_files. Thereby it is possible to select different smallest
+              wavelengths for different files. If only one interval is given,
+              it is applied to all files.
             path_to_data: System path to where the Oifits files are.
             fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
               treatment of visibilities (VISAMP) or squared visibilities
@@ -336,6 +336,19 @@ class Full_data_set():
 
         file_data_sets = []
 
+        # Handle multiple lengths of waves.
+        if len(oifits_files) != len(waves):
+
+            if len(waves) == 1:
+                waves = len(oifits_files) * waves
+            else:
+                raise ValueError(
+                    "The length of waves has to be either 1 (the same "
+                    "wavelength range is applied to all oifits files) of has "
+                    "to match the length of oifits_files (individual "
+                    "wavelengths are applied)."
+                )
+
         # Create empty lists in case no baselines shall be excluded.
         if exclude_baselines_per_file is None:
             exclude_baselines_per_file = [
@@ -346,8 +359,8 @@ class Full_data_set():
         else:
             sort_station_names(exclude_baselines_per_file)
 
-        for (oifits_file, min_wave, max_wave, exclude_baselines) in zip(
-            oifits_files, min_waves, max_waves, exclude_baselines_per_file
+        for (oifits_file, wave, exclude_baselines) in zip(
+            oifits_files, waves, exclude_baselines_per_file
         ):
 
             oifits_DU = oifits.open(path_to_data+oifits_file)
@@ -371,7 +384,10 @@ class Full_data_set():
 
             # Flag wavelengths
             oifits_DU = flag_wavelengths(
-                oifits_DU, min_wave, max_wave, fit_vis_or_vis2
+                oifits_DU=oifits_DU,
+                min_wave=wave[0],
+                max_wave=wave[1],
+                fit_vis_or_vis2=fit_vis_or_vis2
             )
 
             # Loop trough the different data sets of the baselines Oifits file.
