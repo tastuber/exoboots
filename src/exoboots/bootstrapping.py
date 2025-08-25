@@ -1,3 +1,4 @@
+import inspect
 import itertools
 
 import astropy.constants as c
@@ -22,7 +23,6 @@ class Bootstrapper():
     def __init__(
         self,
         N_sample: int,
-        model_selector: int,
         bootstrap_selector: int,
         fit_vis_or_vis2: str,
         full_data_set: "Full_data_set",
@@ -52,7 +52,6 @@ class Bootstrapper():
         """
 
         self.N_sample = N_sample
-        self.model_selector = model_selector
         self.bootstrap_selector = bootstrap_selector
         self.fit_vis_or_vis2 = fit_vis_or_vis2
         self.weight_mode = weight_mode
@@ -67,44 +66,16 @@ class Bootstrapper():
         self.rng_seed = rng_seed
         self.rng = np.random.default_rng(self.rng_seed)
 
-        # Select the analytic function for fitting.
-        match self.model_selector:
-            case 1:
-                self.model_is_polar_symmetric = True
-                descriptor = "limbDarkDisk_overresolved"
-                fit_func = \
-                    model_functions.comp_VISAMP_limbDarkDisk_overresolved
-
-            case 2:
-                self.model_is_polar_symmetric = True
-                descriptor = "limbDarkDisk_gauss"
-                fit_func = model_functions.comp_VISAMP_limbDarkDisk_gauss
-
-            case 3:
-                self.model_is_polar_symmetric = True
-                descriptor = "limbDarkDisk_ring"
-                fit_func = model_functions.comp_VISAMP_limbDarkDisk_ring
-
-            case 4:
-                self.model_is_polar_symmetric = False
-                descriptor = "limbDarkDisk_gauss_ptSrc"
-                fit_func = model_functions.comp_VISAMP_limbDarkDisk_gauss_ptSrc
-
-            case 5:
-                self.model_is_polar_symmetric = False
-                descriptor = "limbDarkDisk_ring_UD"
-                fit_func = model_functions.comp_VISAMP_limbDarkDisk_ring_UD
-
-        # To yield the squared visibility, square the visibility amplitude.
-        if fit_vis_or_vis2 == "VIS2":
-
-            self.fit_func = model_functions.square_func(fit_func)
-            self.fit_func_descr = f"VIS2_{descriptor}"
-
-        elif fit_vis_or_vis2 == "VISAMP":
-
-            self.fit_func = fit_func
-            self.fit_func_descr = f"VISAMP_{descriptor}"
+        # Register analytical model functions.
+        all_funcs = inspect.getmembers(model_functions, inspect.isfunction)
+        prefix = "comp_VISAMP_"
+        # Filter functions starting with the prefix and create a dictionary.
+        # Remove the prefix from the keys.
+        self.model_funcs = {
+            name.removeprefix(prefix): func
+            for name, func in all_funcs
+            if name.startswith(prefix)
+        }
 
         # Select how the data is bootstrapped.
         match self.bootstrap_selector:
@@ -145,8 +116,35 @@ class Bootstrapper():
                 self.do_bootstrapping = \
                     self.do_bootstrapping_for_fixed_wavelengths
 
+    def list_model_keys(self, sorted_by_symmetry: bool=True):
+        """
+        List analytical models. split into polar non polar symmetric ones.
+
+        Args:
+            sorted_by_symmetry: Split into polar symmetric and non polar
+              symmetric models.
+        """
+
+        if not sorted_by_symmetry:
+            for key in self.model_funcs.keys():
+                print(key)
+
+        else:
+
+            print("Polar symmetric models:")
+            for key in self.model_funcs.keys():
+                if self.model_funcs[key].model_category == "polar_symmetric":
+                    print(f"    {key}")
+            print("")
+            print("Non polar symmetric models:")
+            for key in self.model_funcs.keys():
+                if self.model_funcs[key].model_category \
+                    == "non_polar_symmetric":
+                    print(f"    {key}")
+
     def setup_model(
             self,
+            model_key: str,
             vary_param: dict[bool],
             param_init_value: dict[float],
             param_bounds: dict[tuple[float]] | None = None
@@ -158,6 +156,7 @@ class Bootstrapper():
         Those can always accessed via self.fit_func.__annotations__.
 
         Args:
+            model_key: Dictionary key that selects the analytical model.
             vary_param: Defines whether the parameter shall be varied and
               optimized or remains fixed.
             param_init_value: Gives the inital value of the parameters. For
@@ -172,6 +171,24 @@ class Bootstrapper():
             KeyError: In case the input arguments have keys not matching the
               parameters of the fit function.
         """
+
+        fit_func = self.model_funcs[model_key]
+
+        if fit_func.model_category == "polar_symmetric":
+            self.model_is_polar_symmetric = True
+        elif fit_func.model_category == "non_polar_symmetric":
+            self.model_is_polar_symmetric = False
+
+        # To yield the squared visibility, square the visibility amplitude.
+        if self.fit_vis_or_vis2 == "VIS2":
+
+            self.fit_func = model_functions.square_func(fit_func)
+            self.fit_func_descr = f"VIS2_{model_key}"
+
+        elif self.fit_vis_or_vis2 == "VISAMP":
+
+            self.fit_func = fit_func
+            self.fit_func_descr = f"VISAMP_{model_key}"
 
         self.model = lmfit.Model(
             self.fit_func,

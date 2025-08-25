@@ -376,6 +376,13 @@ def plot_vis_all_wavelengths(
             f"{title_chi2_str}"
         )
 
+        fig_name = get_vis_fig_name(
+            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            sample_descr=bs.sample_descr,
+            fit_func_descr=bs.fit_func_descr,
+            wavelength_descr=wavelength_descr
+        )
+
     # This is executed if the bootstrapping has not been performed, but the
     # model has been set up.
     elif hasattr(bs, "param_init_value"):
@@ -415,6 +422,13 @@ def plot_vis_all_wavelengths(
 
         title = f"Initial parameters:\n    {title_init_param_str}\n"
 
+        fig_name = get_vis_fig_name(
+            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            sample_descr=bs.sample_descr,
+            fit_func_descr=bs.fit_func_descr,
+            wavelength_descr=wavelength_descr
+        )
+
     # This is executed if the model has not been set up.
     else:
 
@@ -422,6 +436,12 @@ def plot_vis_all_wavelengths(
         alpha = 1.0 #  non transparent data
         data_labels = baseline_ids #  label the data for any model
         title = ""
+        fig_name = get_vis_fig_name(
+            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            sample_descr=None,
+            fit_func_descr=None,
+            wavelength_descr=wavelength_descr
+        )
 
     ##### Actual plotting.
     fig, ax = plt.subplots(figsize=figsize)
@@ -482,15 +502,10 @@ def plot_vis_all_wavelengths(
         ax.set_title(title, loc="left", fontsize=fontsize_L)
 
     if save:
+
         file_format = "pdf"
-        fig_name = get_vis_fig_name(
-            fit_vis_or_vis2=bs.fit_vis_or_vis2,
-            sample_descr=bs.sample_descr,
-            fit_func_descr=bs.fit_func_descr,
-            wavelength_descr=wavelength_descr,
-            file_format=file_format
-        )
-        fig.savefig(save_path+fig_name, format=file_format,
+        fig_name = fig_name
+        fig.savefig(save_path+fig_name+"."+file_format, format=file_format,
                     bbox_inches='tight')
 
 def plot_vis_for_fixed_wavelengths(
@@ -505,15 +520,23 @@ def plot_vis_for_fixed_wavelengths(
     # Make one pdf with each figure on one page.
     if save:
 
+        file_format = "pdf"
         wavelength_descr = "for_single_waves"
+
+        if hasattr(bs, "param_init_value"):
+            sample_descr = bs.sample_descr
+            fit_func_descr = bs.fit_func_descr
+        else:
+            sample_descr = None
+            fit_func_descr = None
+
         pdf_name = get_vis_fig_name(
                 fit_vis_or_vis2=bs.fit_vis_or_vis2,
-                sample_descr=bs.sample_descr,
-                fit_func_descr=bs.fit_func_descr,
-                wavelength_descr=wavelength_descr,
-                file_format="pdf"
+                sample_descr=sample_descr,
+                fit_func_descr=fit_func_descr,
+                wavelength_descr=wavelength_descr
         )
-        pdf = PdfPages(save_path+pdf_name)
+        pdf = PdfPages(save_path+pdf_name+"."+file_format)
 
     for i_wave in range(bs.N_wavelength):
 
@@ -692,16 +715,14 @@ def plot_vis_for_fixed_wavelengths(
 
         ax.errorbar(spfrq_data, data, yerr=data_error, fmt="x")
 
-        if bs.model_is_polar_symmetric:
+        if np.any(data_func):
 
-            if np.any(data_func):
+            if bs.model_is_polar_symmetric:
 
                 ax.plot(spfrq_func, data_func, label=func_label)
                 ax.legend()
 
-        elif not bs.model_is_polar_symmetric:
-
-            if np.any(data_func):
+            elif not bs.model_is_polar_symmetric:
 
                 ax.scatter(
                     spfrq_data,
@@ -999,7 +1020,7 @@ def get_hist_fig_name(
 
 def get_vis_fig_name(
         fit_vis_or_vis2: str, sample_descr: str,
-        fit_func_descr: str, wavelength_descr: str, file_format: str
+        fit_func_descr: str, wavelength_descr: str
 ):
     """
     Returns the figure file name for given fit parameter and settings.
@@ -1011,7 +1032,6 @@ def get_vis_fig_name(
         fit_func_descr: Descriptor of the chosen fit function.
         wavelength_descr: Contains information about the wavelengths.
           Typically either all wavelengths are fitted together or separately.
-        file_format: The file format.
 
     Returns:
         fig_name: The figure file name.
@@ -1019,12 +1039,12 @@ def get_vis_fig_name(
 
     # Remove the "VISAMP_" or "VIS2_" from fit_func_desc as it is present in
     # fit_vis_or_vis2 anyway.
-    fit_func_descr = "_".join(fit_func_descr.split("_")[1:])
+    if fit_func_descr is not None:
+        fit_func_descr = "_".join(fit_func_descr.split("_")[1:])
 
     fig_name = (
-        f"{"_".join([fit_vis_or_vis2, sample_descr, fit_func_descr,
-                     wavelength_descr])}"
-        f".{file_format}"
+        f"{"_".join(filter(None, [fit_vis_or_vis2, sample_descr,
+                                  fit_func_descr, wavelength_descr]))}"
     )
 
     return fig_name

@@ -6,6 +6,16 @@ import scipy
 
 from exoboots.data_handling import comp_spfrq
 
+# Decorator and wrapper functions.
+def add_model_category(category: str):
+    """Decorator function to add category attribute to model functions."""
+
+    def decorator(func):
+        func.model_category = category
+        return func
+
+    return decorator
+
 def square_func(func):
     """
     Create wrapper function that takes a function and squares its output.
@@ -44,6 +54,8 @@ def square_func(func):
 
     return wrapper
 
+# Model functions.
+@add_model_category("polar_symmetric")
 def comp_VISAMP_limbDarkDisk_overresolved(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -81,6 +93,7 @@ def comp_VISAMP_limbDarkDisk_overresolved(
 
     return VISAMP
 
+@add_model_category("polar_symmetric")
 def comp_VISAMP_limbDarkDisk_gauss(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -122,6 +135,7 @@ def comp_VISAMP_limbDarkDisk_gauss(
 
     return VISAMP
 
+@add_model_category("polar_symmetric")
 def comp_VISAMP_limbDarkDisk_ring(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -178,6 +192,7 @@ def comp_VISAMP_limbDarkDisk_ring(
 
     return VISAMP
 
+@add_model_category("non_polar_symmetric")
 def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -264,6 +279,7 @@ def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
 
     return VISAMP
 
+@add_model_category("non_polar_symmetric")
 def comp_VISAMP_limbDarkDisk_ring_UD(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -363,6 +379,7 @@ def comp_VISAMP_limbDarkDisk_ring_UD(
 
     return VISAMP
 
+@add_model_category("polar_symmetric")
 def comp_VISAMP_limbDarkDisk(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -420,6 +437,7 @@ def comp_VISAMP_limbDarkDisk(
 
     return VISAMP
 
+@add_model_category("polar_symmetric")
 def comp_VISAMP_circGauss(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -450,6 +468,7 @@ def comp_VISAMP_circGauss(
 
     return VISAMP
 
+@add_model_category("polar_symmetric")
 def comp_VISAMP_ring(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
