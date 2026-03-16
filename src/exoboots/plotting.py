@@ -178,15 +178,17 @@ def plot_histogram(
     return fig
 
 def plot_vis(bs, plot_data_uncertainty, figsize, save, save_path,
-             set_title):
+             set_title, show_baseline_legend):
 
     match bs.bootstrap_selector:
         case 1 | 2 | 3:
             plot_vis_all_wavelengths(bs, plot_data_uncertainty, figsize,
-                                     save, save_path, set_title)
+                                     save, save_path, set_title,
+                                     show_baseline_legend)
         case 4:
             plot_vis_for_fixed_wavelengths(bs, plot_data_uncertainty, figsize,
-                                           save, save_path, set_title)
+                                           save, save_path, set_title,
+                                           show_baseline_legend)
 
 def plot_vis_all_wavelengths(
         bs,
@@ -194,7 +196,8 @@ def plot_vis_all_wavelengths(
         figsize,
         save,
         save_path,
-        set_title
+        set_title,
+        show_baseline_legend
 ):
 
     wavelength_descr = "all_waves"
@@ -483,7 +486,8 @@ def plot_vis_all_wavelengths(
     fontsize_L = 20
     fontsize_S = 16
 
-    ax.legend(fontsize=fontsize_S)
+    if show_baseline_legend:
+        ax.legend(fontsize=fontsize_S)
 
     ax.set_xlabel("spatial frequency /rad\u207B\u00b9", fontsize=fontsize_L)
     ax.set_ylabel(
@@ -514,7 +518,8 @@ def plot_vis_for_fixed_wavelengths(
         figsize,
         save,
         save_path,
-        set_title
+        set_title,
+        show_baseline_legend
 ):
 
     # Make one pdf with each figure on one page.
@@ -720,7 +725,8 @@ def plot_vis_for_fixed_wavelengths(
             if bs.model_is_polar_symmetric:
 
                 ax.plot(spfrq_func, data_func, label=func_label)
-                ax.legend()
+                if show_baseline_legend:
+                    ax.legend()
 
             elif not bs.model_is_polar_symmetric:
 
@@ -731,7 +737,8 @@ def plot_vis_for_fixed_wavelengths(
                     s=106, #  markersize
                     color="red",
                     label=func_label)
-                ax.legend()
+                if show_baseline_legend:
+                    ax.legend()
 
         ax.set_xlabel("spatial frequency /rad\u207B\u00b9")
         ax.set_ylabel(

@@ -841,7 +841,8 @@ class Bootstrapper():
         figsize: tuple[float, float] = (20, 12),
         save: bool = True,
         save_path: str | None = None,
-        set_title: bool = True
+        set_title: bool = True,
+        show_baseline_legend: bool = True
     ):
 
         if not save_path:
@@ -853,7 +854,8 @@ class Bootstrapper():
             figsize=figsize,
             save=save,
             save_path=save_path,
-            set_title=set_title
+            set_title=set_title,
+            show_baseline_legend=show_baseline_legend
         )
 
     def plot_dust_sed(
