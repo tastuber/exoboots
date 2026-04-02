@@ -1,6 +1,6 @@
 # Exoboots
 
-A package to model hot exozodiacal dust in optical interferometric data using bootstrapping.
+A package to model the signal of hot exozodiacal dust in optical interferometric data using bootstrapping.
 
 ## Short description
 
