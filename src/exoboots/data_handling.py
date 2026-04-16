@@ -336,6 +336,8 @@ class Full_data_set():
               not present in an input fits file.
         """
 
+        self.vis_or_vis2 = vis_or_vis2
+
         file_data_sets = []
 
         # If oifits_files containes a single string, wrap it in a list.
@@ -374,19 +376,19 @@ class Full_data_set():
 
             # Check whether the desired data, visibility or squared visibility,
             # is present in the chosen file. Raise error if not.
-            if vis_or_vis2 == "VISAMP":
+            if self.vis_or_vis2 == "VISAMP":
                 if len(oifits_DU.vis) == 0:
                     pass
-                    raise exceptions.NoDataError(oifits_file, vis_or_vis2)
-            elif vis_or_vis2 == "VIS2":
+                    raise exceptions.NoDataError(oifits_file, self.vis_or_vis2)
+            elif self.vis_or_vis2 == "VIS2":
                 if len(oifits_DU.vis2) == 0:
-                    raise exceptions.NoDataError(oifits_file, vis_or_vis2)
+                    raise exceptions.NoDataError(oifits_file, self.vis_or_vis2)
 
             # Unflag (=unmask) all values.
             if unflag_all:
 
                 oifits_DU = unflag_all_wavelengths(
-                    oifits_DU, vis_or_vis2
+                    oifits_DU, self.vis_or_vis2
                 )
 
             # Flag wavelengths
@@ -394,7 +396,7 @@ class Full_data_set():
                 oifits_DU=oifits_DU,
                 min_wave=wave[0],
                 max_wave=wave[1],
-                vis_or_vis2=vis_or_vis2
+                vis_or_vis2=self.vis_or_vis2
             )
 
             # Loop trough the different data sets of the baselines Oifits file.
@@ -405,9 +407,9 @@ class Full_data_set():
             baselines = []
 
             # Select VISAMP or VIS2
-            if vis_or_vis2 == "VISAMP":
+            if self.vis_or_vis2 == "VISAMP":
                 oi_data = oifits_DU.vis
-            elif vis_or_vis2 == "VIS2":
+            elif self.vis_or_vis2 == "VIS2":
                 oi_data = oifits_DU.vis2
 
             for oifits_baseline in oi_data:
@@ -432,7 +434,7 @@ class Full_data_set():
                 # them as array in oi_data, oifits_error, and
                 # oifits_wavelength. No masked arrays from this point on, only
                 # the chosen data.
-                if vis_or_vis2 == "VISAMP":
+                if self.vis_or_vis2 == "VISAMP":
 
                     oi_data_values = oifits_baseline.visamp[
                         np.invert(oifits_baseline.flag)
@@ -441,7 +443,7 @@ class Full_data_set():
                         np.invert(oifits_baseline.flag)
                     ].data
 
-                elif vis_or_vis2 == "VIS2":
+                elif self.vis_or_vis2 == "VIS2":
 
                     oi_data_values = oifits_baseline.vis2data[
                         np.invert(oifits_baseline.flag)

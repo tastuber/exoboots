@@ -24,7 +24,6 @@ class Bootstrapper():
         self,
         N_sample: int,
         bootstrap_selector: int,
-        vis_or_vis2: str,
         full_data_set: "Full_data_set",
         weight_mode: str,
         rng_seed: int
@@ -53,7 +52,7 @@ class Bootstrapper():
 
         self.N_sample = N_sample
         self.bootstrap_selector = bootstrap_selector
-        self.vis_or_vis2 = vis_or_vis2
+        self.vis_or_vis2 = full_data_set.vis_or_vis2
         self.weight_mode = weight_mode
         self.full_data_set = full_data_set
         self.full_data_set.set_weight(weight_mode=self.weight_mode)
