@@ -380,7 +380,7 @@ def plot_vis_all_wavelengths(
         )
 
         fig_name = get_vis_fig_name(
-            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            vis_or_vis2=bs.vis_or_vis2,
             sample_descr=bs.sample_descr,
             fit_func_descr=bs.fit_func_descr,
             wavelength_descr=wavelength_descr
@@ -426,7 +426,7 @@ def plot_vis_all_wavelengths(
         title = f"Initial parameters:\n    {title_init_param_str}\n"
 
         fig_name = get_vis_fig_name(
-            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            vis_or_vis2=bs.vis_or_vis2,
             sample_descr=bs.sample_descr,
             fit_func_descr=bs.fit_func_descr,
             wavelength_descr=wavelength_descr
@@ -440,7 +440,7 @@ def plot_vis_all_wavelengths(
         data_labels = baseline_ids #  label the data for any model
         title = ""
         fig_name = get_vis_fig_name(
-            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            vis_or_vis2=bs.vis_or_vis2,
             sample_descr=None,
             fit_func_descr=None,
             wavelength_descr=wavelength_descr
@@ -491,7 +491,7 @@ def plot_vis_all_wavelengths(
 
     ax.set_xlabel("spatial frequency /rad\u207B\u00b9", fontsize=fontsize_L)
     ax.set_ylabel(
-        f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility",
+        f"{"squared " if bs.vis_or_vis2=="VIS2" else ""}visibility",
         fontsize=fontsize_L
     )
 
@@ -536,7 +536,7 @@ def plot_vis_for_fixed_wavelengths(
             fit_func_descr = None
 
         pdf_name = get_vis_fig_name(
-                fit_vis_or_vis2=bs.fit_vis_or_vis2,
+                vis_or_vis2=bs.vis_or_vis2,
                 sample_descr=sample_descr,
                 fit_func_descr=fit_func_descr,
                 wavelength_descr=wavelength_descr
@@ -742,7 +742,7 @@ def plot_vis_for_fixed_wavelengths(
 
         ax.set_xlabel("spatial frequency /rad\u207B\u00b9")
         ax.set_ylabel(
-            f"{"squared " if bs.fit_vis_or_vis2=="VIS2" else ""}visibility"
+            f"{"squared " if bs.vis_or_vis2=="VIS2" else ""}visibility"
         )
 
         if set_title:
@@ -809,7 +809,7 @@ def plot_relative_sed(
         file_format = "pdf"
         fig_name = get_results_file_name(
             suffix="relative_sed",
-            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            vis_or_vis2=bs.vis_or_vis2,
             sample_descr=bs.sample_descr,
             fit_func_descr=bs.fit_func_descr,
             wavelength_descr=wavelength_descr,
@@ -870,7 +870,7 @@ def plot_dust_sed(
         file_format = "pdf"
         fig_name = get_results_file_name(
             suffix="dust_SED",
-            fit_vis_or_vis2=bs.fit_vis_or_vis2,
+            vis_or_vis2=bs.vis_or_vis2,
             sample_descr=bs.sample_descr,
             fit_func_descr=bs.fit_func_descr,
             wavelength_descr=wavelength_descr,
@@ -1026,7 +1026,7 @@ def get_hist_fig_name(
     return fig_name
 
 def get_vis_fig_name(
-        fit_vis_or_vis2: str, sample_descr: str,
+        vis_or_vis2: str, sample_descr: str,
         fit_func_descr: str, wavelength_descr: str
 ):
     """
@@ -1045,19 +1045,19 @@ def get_vis_fig_name(
     """
 
     # Remove the "VISAMP_" or "VIS2_" from fit_func_desc as it is present in
-    # fit_vis_or_vis2 anyway.
+    # vis_or_vis2 anyway.
     if fit_func_descr is not None:
         fit_func_descr = "_".join(fit_func_descr.split("_")[1:])
 
     fig_name = (
-        f"{"_".join(filter(None, [fit_vis_or_vis2, sample_descr,
+        f"{"_".join(filter(None, [vis_or_vis2, sample_descr,
                                   fit_func_descr, wavelength_descr]))}"
     )
 
     return fig_name
 
 def get_results_file_name(
-        suffix: str, fit_vis_or_vis2: str, sample_descr: str,
+        suffix: str, vis_or_vis2: str, sample_descr: str,
         fit_func_descr: str, wavelength_descr: str, file_format: str
 ):
     """
@@ -1078,11 +1078,11 @@ def get_results_file_name(
     """
 
     # Remove the "VISAMP_" or "VIS2_" from fit_func_desc as it is present in
-    # fit_vis_or_vis2 anyway.
+    # vis_or_vis2 anyway.
     fit_func_descr = "_".join(fit_func_descr.split("_")[1:])
 
     file_name = (
-        f"{"_".join([suffix, fit_vis_or_vis2, sample_descr,
+        f"{"_".join([suffix, vis_or_vis2, sample_descr,
                      fit_func_descr, wavelength_descr])}"
         f".{file_format}"
     )

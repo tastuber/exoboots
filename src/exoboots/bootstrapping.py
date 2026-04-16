@@ -24,7 +24,7 @@ class Bootstrapper():
         self,
         N_sample: int,
         bootstrap_selector: int,
-        fit_vis_or_vis2: str,
+        vis_or_vis2: str,
         full_data_set: "Full_data_set",
         weight_mode: str,
         rng_seed: int
@@ -53,7 +53,7 @@ class Bootstrapper():
 
         self.N_sample = N_sample
         self.bootstrap_selector = bootstrap_selector
-        self.fit_vis_or_vis2 = fit_vis_or_vis2
+        self.vis_or_vis2 = vis_or_vis2
         self.weight_mode = weight_mode
         self.full_data_set = full_data_set
         self.full_data_set.set_weight(weight_mode=self.weight_mode)
@@ -180,12 +180,12 @@ class Bootstrapper():
             self.model_is_polar_symmetric = False
 
         # To yield the squared visibility, square the visibility amplitude.
-        if self.fit_vis_or_vis2 == "VIS2":
+        if self.vis_or_vis2 == "VIS2":
 
             self.fit_func = model_functions.square_func(fit_func)
             self.fit_func_descr = f"VIS2_{model_key}"
 
-        elif self.fit_vis_or_vis2 == "VISAMP":
+        elif self.vis_or_vis2 == "VISAMP":
 
             self.fit_func = fit_func
             self.fit_func_descr = f"VISAMP_{model_key}"
@@ -632,7 +632,7 @@ class Bootstrapper():
 
         file_name = plotting.get_results_file_name(
             suffix="fit_results",
-            fit_vis_or_vis2=self.fit_vis_or_vis2,
+            vis_or_vis2=self.vis_or_vis2,
             sample_descr=self.sample_descr,
             fit_func_descr=self.fit_func_descr,
             wavelength_descr=self.wavelength_descr,
@@ -652,7 +652,7 @@ class Bootstrapper():
 
         file_name = plotting.get_results_file_name(
             suffix="relative_sed",
-            fit_vis_or_vis2=self.fit_vis_or_vis2,
+            vis_or_vis2=self.vis_or_vis2,
             sample_descr=self.sample_descr,
             fit_func_descr=self.fit_func_descr,
             wavelength_descr=self.wavelength_descr,
@@ -672,7 +672,7 @@ class Bootstrapper():
 
         file_name = plotting.get_results_file_name(
             suffix="dust_SED",
-            fit_vis_or_vis2=self.fit_vis_or_vis2,
+            vis_or_vis2=self.vis_or_vis2,
             sample_descr=self.sample_descr,
             fit_func_descr=self.fit_func_descr,
             wavelength_descr=self.wavelength_descr,

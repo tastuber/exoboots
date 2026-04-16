@@ -22,7 +22,7 @@ def comp_spfrq(u_spfrq, v_spfrq):
     return spfrq
 
 def unflag_all_wavelengths(oifits_DU: oifits.oifits,
-                           fit_vis_or_vis2: str) -> oifits.oifits:
+                           vis_or_vis2: str) -> oifits.oifits:
     """
     Unflag all measurements.
 
@@ -32,21 +32,21 @@ def unflag_all_wavelengths(oifits_DU: oifits.oifits,
 
     Args:
         oifits_DU: The oifits data unit (DU) as instance of oifits.oifits.
-        fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
+        vis_or_vis2: String of either "VISAMP" or "VIS2" to select
           treatment of visibilities (VISAMP) or squared visibilities (VIS2).
 
     Returns:
         oifits_DU: Modified copy of the input oifits with flagged data.
     """
 
-    if fit_vis_or_vis2 == "VISAMP":
+    if vis_or_vis2 == "VISAMP":
 
         for vis in oifits_DU.vis:
 
             vis.flag = vis.flag * False
             vis.flag = vis.flag * False
 
-    elif fit_vis_or_vis2 == "VIS2":
+    elif vis_or_vis2 == "VIS2":
 
         for vis2 in oifits_DU.vis2:
 
@@ -56,7 +56,7 @@ def unflag_all_wavelengths(oifits_DU: oifits.oifits,
     return oifits_DU
 
 def flag_wavelengths(oifits_DU: oifits.oifits, min_wave: float,
-                     max_wave:float, fit_vis_or_vis2: str) -> oifits.oifits:
+                     max_wave:float, vis_or_vis2: str) -> oifits.oifits:
     """
     Masks all measurements outside the chosen wavelength range.
 
@@ -72,14 +72,14 @@ def flag_wavelengths(oifits_DU: oifits.oifits, min_wave: float,
         max_wave: The maximum wavelength in units of meter to be considered in
           the analysis. All data corresponding to larger wavelengths are
           flagged.
-        fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
+        vis_or_vis2: String of either "VISAMP" or "VIS2" to select
           treatment of visibilities (VISAMP) or squared visibilities (VIS2).
 
     Returns:
         oifits_DU: Modified copy of the input oifits with flagged data.
     """
 
-    if fit_vis_or_vis2 == "VISAMP":
+    if vis_or_vis2 == "VISAMP":
 
         for vis in oifits_DU.vis:
 
@@ -88,7 +88,7 @@ def flag_wavelengths(oifits_DU: oifits.oifits, min_wave: float,
             wave_mask = vis.wavelength.eff_wave > max_wave
             vis.flag[wave_mask] = True
 
-    elif fit_vis_or_vis2 == "VIS2":
+    elif vis_or_vis2 == "VIS2":
 
         for vis2 in oifits_DU.vis2:
 
@@ -298,7 +298,7 @@ class Full_data_set():
 
     def __init__(
         self, oifits_files: str | list[str], path_to_data: str,
-        fit_vis_or_vis2: str,
+        vis_or_vis2: str,
         waves: list[tuple[float, float]] = [(-np.inf, np.inf)],
         exclude_baselines_per_file: list[list[str]] | None = None,
         unflag_all: bool = False
@@ -315,7 +315,7 @@ class Full_data_set():
               it is applied to all files. The default is [(-np.inf, np.inf)],
               thus selecting all wavelengths.
             path_to_data: System path to where the Oifits files are.
-            fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
+            vis_or_vis2: String of either "VISAMP" or "VIS2" to select
               treatment of visibilities (VISAMP) or squared visibilities
               (VIS2).
             exclude_baselines_per_file: Nested list that contains a lists of
@@ -374,19 +374,19 @@ class Full_data_set():
 
             # Check whether the desired data, visibility or squared visibility,
             # is present in the chosen file. Raise error if not.
-            if fit_vis_or_vis2 == "VISAMP":
+            if vis_or_vis2 == "VISAMP":
                 if len(oifits_DU.vis) == 0:
                     pass
-                    raise exceptions.NoDataError(oifits_file, fit_vis_or_vis2)
-            elif fit_vis_or_vis2 == "VIS2":
+                    raise exceptions.NoDataError(oifits_file, vis_or_vis2)
+            elif vis_or_vis2 == "VIS2":
                 if len(oifits_DU.vis2) == 0:
-                    raise exceptions.NoDataError(oifits_file, fit_vis_or_vis2)
+                    raise exceptions.NoDataError(oifits_file, vis_or_vis2)
 
             # Unflag (=unmask) all values.
             if unflag_all:
 
                 oifits_DU = unflag_all_wavelengths(
-                    oifits_DU, fit_vis_or_vis2
+                    oifits_DU, vis_or_vis2
                 )
 
             # Flag wavelengths
@@ -394,7 +394,7 @@ class Full_data_set():
                 oifits_DU=oifits_DU,
                 min_wave=wave[0],
                 max_wave=wave[1],
-                fit_vis_or_vis2=fit_vis_or_vis2
+                vis_or_vis2=vis_or_vis2
             )
 
             # Loop trough the different data sets of the baselines Oifits file.
@@ -405,9 +405,9 @@ class Full_data_set():
             baselines = []
 
             # Select VISAMP or VIS2
-            if fit_vis_or_vis2 == "VISAMP":
+            if vis_or_vis2 == "VISAMP":
                 oi_data = oifits_DU.vis
-            elif fit_vis_or_vis2 == "VIS2":
+            elif vis_or_vis2 == "VIS2":
                 oi_data = oifits_DU.vis2
 
             for oifits_baseline in oi_data:
@@ -432,7 +432,7 @@ class Full_data_set():
                 # them as array in oi_data, oifits_error, and
                 # oifits_wavelength. No masked arrays from this point on, only
                 # the chosen data.
-                if fit_vis_or_vis2 == "VISAMP":
+                if vis_or_vis2 == "VISAMP":
 
                     oi_data_values = oifits_baseline.visamp[
                         np.invert(oifits_baseline.flag)
@@ -441,7 +441,7 @@ class Full_data_set():
                         np.invert(oifits_baseline.flag)
                     ].data
 
-                elif fit_vis_or_vis2 == "VIS2":
+                elif vis_or_vis2 == "VIS2":
 
                     oi_data_values = oifits_baseline.vis2data[
                         np.invert(oifits_baseline.flag)
