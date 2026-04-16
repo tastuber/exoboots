@@ -297,7 +297,7 @@ class Full_data_set():
     """
 
     def __init__(
-        self, oifits_files: list[str], waves: list[tuple[float, float]],
+        self, oifits_files: str | list[str], waves: list[tuple[float, float]],
         path_to_data: str, fit_vis_or_vis2: str,
         exclude_baselines_per_file: list[list[str]] | None = None,
         unflag_all: bool = False
@@ -306,7 +306,7 @@ class Full_data_set():
         Read input, select wavelength and baseline and create a Full_data_set.
 
         Args:
-            oifits_files: List of the Oifits files to be loaded.
+            oifits_files: Oifits file or list files to be loaded.
             waves: List of the wavelength intervals in the form
               tuple(min_wave, max_wave) considered per file listed in
               oifits_files. Thereby it is possible to select different smallest
@@ -335,6 +335,11 @@ class Full_data_set():
         """
 
         file_data_sets = []
+
+        # If oifits_files containes a single string, wrap it in a list.
+        if not isinstance(oifits_files, list):
+
+            oifits_files = [oifits_files]
 
         # Handle multiple lengths of waves.
         if len(oifits_files) != len(waves):
