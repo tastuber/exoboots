@@ -297,8 +297,9 @@ class Full_data_set():
     """
 
     def __init__(
-        self, oifits_files: str | list[str], waves: list[tuple[float, float]],
-        path_to_data: str, fit_vis_or_vis2: str,
+        self, oifits_files: str | list[str], path_to_data: str,
+        fit_vis_or_vis2: str,
+        waves: list[tuple[float, float]] = [(-np.inf, np.inf)],
         exclude_baselines_per_file: list[list[str]] | None = None,
         unflag_all: bool = False
     ):
@@ -311,7 +312,8 @@ class Full_data_set():
               tuple(min_wave, max_wave) considered per file listed in
               oifits_files. Thereby it is possible to select different smallest
               wavelengths for different files. If only one interval is given,
-              it is applied to all files.
+              it is applied to all files. The default is [(-np.inf, np.inf)],
+              thus selecting all wavelengths.
             path_to_data: System path to where the Oifits files are.
             fit_vis_or_vis2: String of either "VISAMP" or "VIS2" to select
               treatment of visibilities (VISAMP) or squared visibilities
