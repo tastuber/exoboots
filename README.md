@@ -28,16 +28,11 @@ are inspired by an IDL package that was developed to analyze observations with
 CHARA/FLUOR
 ([Absil et al. 2006](https://ui.adsabs.harvard.edu/abs/2006A%26A...452..237A/abstract)).
 
-The code is in early development, but its capabilities have already been used
-in [Ollmann et al. 2025](https://ui.adsabs.harvard.edu/abs/2025A%26A...699A.144O/abstract).\
-If you would like to get involved or obtain more information, please contact me
-either via GitHub or [email](mailto:tstuber@arizona.edu).
-
 # Installation instructions
 
 I recommend installing `Exoboots` into a virtual environment, for instance
-using `conda` or `python venv`. `Exoboots` requires Python in version 3.12.8 or
-later.
+using `conda`, `mamba`, or `python venv`. `Exoboots` requires Python in version
+3.12.8 or later.
 
 ### Install directly from GitHub
 ```
@@ -51,3 +46,10 @@ git clone https://github.com/tastuber/exoboots
 cd exoboots
 pip install .
 ```
+
+### Status
+
+The code is in early development, but its capabilities have already been used
+in [Ollmann et al. 2025](https://ui.adsabs.harvard.edu/abs/2025A%26A...699A.144O/abstract).\
+If you would like to get involved or obtain more information, please contact me
+either via GitHub or [email](mailto:tstuber@arizona.edu).
