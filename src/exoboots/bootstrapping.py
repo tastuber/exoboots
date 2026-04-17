@@ -146,7 +146,7 @@ class Bootstrapper():
             model_key: str,
             vary_param: dict[bool],
             param_init_value: dict[float],
-            param_bounds: dict[tuple[float]] | None = None
+            param_bounds: dict[tuple[float]] | dict = {}
     ):
         """
         Prepare the model for lmfit.
@@ -163,8 +163,8 @@ class Bootstrapper():
             param_bounds: Optional; parameter bounds for the fit. Contains
               tuple with the first value being the lower bound and the second
               value being the upper bound. The bounds only have and effect on
-              varied parameters. If None or not provided, -np.inf, np.inf are
-              set as bounds.
+              varied parameters. If no bounds are given for a parameter,
+              +/- infinity are set as bounds.
 
         Raises:
             KeyError: In case the input arguments have keys not matching the
@@ -194,12 +194,13 @@ class Bootstrapper():
             independent_vars=["u_spfrq", "v_spfrq"]
         )
 
-        # If no parameter bounds are given, set them to -infinity, +infinitiy.
-        if param_bounds is None:
-            param_bounds = {
-                param_name: (-np.inf, np.inf)
-                for param_name in self.model.param_names
-            }
+        # If no parameter bounds are given for a particular parameter, set
+        # it to +/- infinity.
+        for param_name in self.model.param_names:
+
+            if param_name not in param_bounds:
+
+                param_bounds[param_name] = (-np.inf, np.inf)
 
         # Check whether the input dicts have the right keys.
         if set(vary_param) != set(self.model.param_names):
