@@ -1,3 +1,4 @@
+import inspect
 import functools
 
 import astropy.units as u
@@ -12,6 +13,18 @@ def add_model_category(category: str):
 
     def decorator(func):
         func.model_category = category
+        return func
+
+    return decorator
+
+def add_model_parameters():
+    """Decorator function to add dict of parameters to model functions."""
+
+    def decorator(func):
+        func.model_parameters = [
+            arg for arg in inspect.getfullargspec(func)[0]
+            if arg not in ["u_spfrq", "v_spfrq"] #  exclude free variables
+        ]
         return func
 
     return decorator
@@ -56,6 +69,7 @@ def square_func(func):
 
 # Model functions.
 @add_model_category("polar_symmetric")
+@add_model_parameters()
 def comp_VISAMP_limbDarkDisk_overresolved(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -94,6 +108,7 @@ def comp_VISAMP_limbDarkDisk_overresolved(
     return VISAMP
 
 @add_model_category("polar_symmetric")
+@add_model_parameters()
 def comp_VISAMP_limbDarkDisk_gauss(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -136,6 +151,7 @@ def comp_VISAMP_limbDarkDisk_gauss(
     return VISAMP
 
 @add_model_category("polar_symmetric")
+@add_model_parameters()
 def comp_VISAMP_limbDarkDisk_ring(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -193,6 +209,7 @@ def comp_VISAMP_limbDarkDisk_ring(
     return VISAMP
 
 @add_model_category("non_polar_symmetric")
+@add_model_parameters()
 def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -280,6 +297,7 @@ def comp_VISAMP_limbDarkDisk_gauss_ptSrc(
     return VISAMP
 
 @add_model_category("non_polar_symmetric")
+@add_model_parameters()
 def comp_VISAMP_limbDarkDisk_ring_UD(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -380,6 +398,7 @@ def comp_VISAMP_limbDarkDisk_ring_UD(
     return VISAMP
 
 @add_model_category("polar_symmetric")
+@add_model_parameters()
 def comp_VISAMP_limbDarkDisk(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -438,6 +457,7 @@ def comp_VISAMP_limbDarkDisk(
     return VISAMP
 
 @add_model_category("polar_symmetric")
+@add_model_parameters()
 def comp_VISAMP_circGauss(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
@@ -469,6 +489,7 @@ def comp_VISAMP_circGauss(
     return VISAMP
 
 @add_model_category("polar_symmetric")
+@add_model_parameters()
 def comp_VISAMP_ring(
     u_spfrq: "Scalar or array (float)",
     v_spfrq: "Scalar or array (float)",
