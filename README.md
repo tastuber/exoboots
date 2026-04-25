@@ -47,6 +47,11 @@ cd exoboots
 pip install .
 ```
 
+## Usage Example
+
+Find an example Jupyter notebook reproducing published results in the
+`examples` folder.
+
 ## Status
 
 The code is in early development, but its capabilities have already been used
