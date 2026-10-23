@@ -50,7 +50,8 @@ pip install .
 ## Usage Example
 
 Find an example Jupyter notebook reproducing published results in the
-`examples` folder.
+`examples` folder
+[here](https://github.com/tastuber/exoboots/blob/main/examples/PIONIER_kappaTucA/example_notebook.ipynb).
 
 ## Status
 
